@@ -112,7 +112,7 @@ export default function App() {
     await saveLedger(snapshot.month, credits);
   };
 
-  if (loading && !snapshot) {
+  if (loading) {
     return (
       <div className="app-loading">
         <div className="spinner" />
