@@ -26,8 +26,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   const unaccountedExpenses = expenses.filter(e => e.category === 'UNACCOUNTED' && (e.amount > 0 || e.name));
 
   const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccountedExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
-  const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
-  const totalSettled = settlementExpenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
   const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
 
   // Total out of pocket ignores 'SETTLED'
