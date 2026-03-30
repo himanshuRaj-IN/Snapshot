@@ -7,7 +7,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         const { rows } = await sql`SELECT month, year FROM snapshots ORDER BY year DESC, month DESC`;
         const list = rows.map(r => ({
-          key: `${String(r.month).substring(0,3).toUpperCase()}_${r.year}`,
+          key: `${String(r.month).toUpperCase()}_${r.year}`,
           label: `${r.month} ${r.year}`
         }));
         return res.status(200).json(list);
