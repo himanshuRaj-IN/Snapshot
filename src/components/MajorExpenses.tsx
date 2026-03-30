@@ -144,7 +144,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
         {/* ── General Block ───────────────────────────────────────────── */}
         <div className="expense-block">
           <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-            GENERAL EXPENSES
+            EXPENSES
           </div>
           {generalExpenses.length > 0 && (
             <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
@@ -167,7 +167,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
               ))}
               {(unaccounted > 0 || unaccounted < 0) && (
                 <tr className="row-unaccounted">
-                  <td colSpan={2} className="exp-cat amber">Unassigned Gap</td>
+                  <td colSpan={2} className="exp-cat amber">Unaccounted (Gap)</td>
                   <td className="val amber mono">{fmt(unaccounted)}</td>
                 </tr>
               )}
