@@ -53,6 +53,7 @@ export default function App() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createSource, setCreateSource] = useState('');
   const [createTarget, setCreateTarget] = useState('');
+  const [isLedgerExpanding, setIsLedgerExpanding] = useState(false);
 
   const openCreateModal = () => {
     setCreateSource(activeKey || (months.length > 0 ? months[0].key : 'MARCH_2026'));
@@ -237,10 +238,13 @@ export default function App() {
             snapshot={snapshot}
             onSave={handleSaveCore} 
           />
-          <CreditDebt 
-            credits={snapshot.credits} 
-            onSave={handleSaveCredits}
-          />
+          <div className={isLedgerExpanding ? 'grid-span-full' : ''}>
+            <CreditDebt 
+              credits={snapshot.credits} 
+              onSave={handleSaveCredits}
+              onEditingChange={setIsLedgerExpanding}
+            />
+          </div>
         </div>
       </main>
 

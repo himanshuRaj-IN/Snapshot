@@ -133,6 +133,40 @@
   border-bottom: 1px solid var(--border-light);
 }
 
+/* Row hover actions */
+.row-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.expense-row-hover:hover .row-actions {
+    opacity: 1;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+}
+.icon-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+.icon-btn-delete:hover {
+    color: var(--red);
+    background: rgba(239,68,68,0.1);
+}
+
 /* Section total */
 .section-total {
   display: flex;

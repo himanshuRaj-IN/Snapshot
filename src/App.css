@@ -96,6 +96,9 @@
   align-items: stretch;
   padding-bottom: 28px;
 }
+.grid-span-full {
+  grid-column: 1 / -1;
+}
 .grid-bottom > * {
   height: 100%;
 }

@@ -5,11 +5,12 @@ import './Sections.css';
 interface Props {
   credits: CreditEntry[];
   onSave?: (credits: CreditEntry[]) => void;
+  onEditingChange?: (isEditing: boolean) => void;
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function CreditDebt({ credits, onSave }: Props) {
+export default function CreditDebt({ credits, onSave, onEditingChange }: Props) {
   const [adding, setAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
@@ -20,6 +21,11 @@ export default function CreditDebt({ credits, onSave }: Props) {
   const [settled, setSettled]     = useState('');
   const [borrowed, setBorrowed]   = useState('');
   const entityRef = useRef<HTMLInputElement>(null);
+
+  // Notify parent when layout needs to expand
+  useEffect(() => {
+    onEditingChange?.(adding || editingIndex !== null);
+  }, [adding, editingIndex, onEditingChange]);
 
   useEffect(() => {
     if (adding) {
@@ -86,7 +92,7 @@ export default function CreditDebt({ credits, onSave }: Props) {
   const totalBorrowed = credits.reduce((s, c) => s + c.borrowed, 0);
 
   return (
-    <div className="card">
+    <div className={`card ${adding || editingIndex !== null ? 'card-editing' : ''}`}>
       <div className="card-title">
         <span className="card-title-icon" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}>⇄</span>
         Credit &amp; Debt
@@ -101,7 +107,7 @@ export default function CreditDebt({ credits, onSave }: Props) {
         <table className="snap-table">
           <thead>
             <tr>
-              <th>Entity</th>
+              <th style={{ minWidth: '140px' }}>Entity</th>
               <th className="right">Amt</th>
               <th className="right">Lent/Owe</th>
               <th className="right">Settled</th>
@@ -149,15 +155,15 @@ export default function CreditDebt({ credits, onSave }: Props) {
               return (
                 <tr key={i} className="expense-row-hover">
                   <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{c.entity}</td>
-                  <td className="val">{fmt(c.amount)}</td>
-                  <td className="val green">{fmt(c.lentOrOwe)}</td>
-                  <td className="val muted">{fmt(c.settled)}</td>
+                  <td className="val mono">{fmt(c.amount)}</td>
+                  <td className="val mono green">{fmt(c.lentOrOwe)}</td>
+                  <td className="val mono muted">{fmt(c.settled)}</td>
                   <td className="val red">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                       <span className="mono">{fmt(c.borrowed)}</span>
                       <div className="row-actions">
-                        <button className="icon-btn" onClick={() => handleStartEdit(c, i)}>✎</button>
-                        <button className="icon-btn" onClick={() => handleDelete(i)}>✕</button>
+                        <button className="icon-btn" title="Edit" onClick={() => handleStartEdit(c, i)}>✎</button>
+                        <button className="icon-btn icon-btn-delete" title="Delete" onClick={() => handleDelete(i)}>✕</button>
                       </div>
                     </div>
                   </td>
