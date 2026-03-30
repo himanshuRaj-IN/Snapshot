@@ -70,7 +70,36 @@ async function initDB() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
     `;
-    console.log('✅ Table "snapshots" created successfully.');
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id           SERIAL PRIMARY KEY,
+        month        TEXT NOT NULL,
+        year         INTEGER NOT NULL,
+        category     TEXT NOT NULL,
+        name         TEXT,
+        amount       NUMERIC(12,2) NOT NULL,
+        date         DATE DEFAULT CURRENT_DATE,
+        created_at   TIMESTAMPTZ DEFAULT now(),
+        CONSTRAINT fk_snapshot FOREIGN KEY(month, year) REFERENCES snapshots(month, year) ON DELETE CASCADE
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS credit_ledger (
+        id           SERIAL PRIMARY KEY,
+        month        TEXT NOT NULL,
+        year         INTEGER NOT NULL,
+        entity       TEXT NOT NULL,
+        amount       NUMERIC(12,2) DEFAULT 0,
+        lent_or_owe  NUMERIC(12,2) DEFAULT 0,
+        settled      NUMERIC(12,2) DEFAULT 0,
+        borrowed     NUMERIC(12,2) DEFAULT 0,
+        created_at   TIMESTAMPTZ DEFAULT now(),
+        CONSTRAINT fk_snapshot_credit FOREIGN KEY(month, year) REFERENCES snapshots(month, year) ON DELETE CASCADE
+      );
+    `;
+    console.log('✅ Tables created successfully.');
   } catch (error) {
     console.error('❌ Failed to create table:', error);
   }

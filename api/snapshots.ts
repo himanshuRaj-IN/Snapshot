@@ -35,6 +35,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
+      // Get related collections
+      const expRes = await sql`SELECT * FROM transactions WHERE month = ${qMonth} AND year = ${qYear}`;
+      const credRes = await sql`SELECT * FROM credit_ledger WHERE month = ${qMonth} AND year = ${qYear}`;
+      
+      const expenses = expRes.rows.map(r => ({
+        category: r.category,
+        name: r.name,
+        amount: Number(r.amount)
+      }));
+
+      const credits = credRes.rows.map(r => ({
+        entity: r.entity,
+        amount: Number(r.amount),
+        lentOrOwe: Number(r.lent_or_owe),
+        settled: Number(r.settled),
+        borrowed: Number(r.borrowed)
+      }));
+
       const snapshot = {
         month: `${qMonth} ${qYear}`,
         opening: {
@@ -77,8 +95,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           Number(db.dist_debt_repaid), Number(db.dist_for_expense)
         ].reduce((a, b) => a + b, 0),
         expenseUnaccounted: Number(db.unaccounted),
-        expenses: [], // Separated into another table later
-        credits: [] // Separated into another table later
+        expenses,
+        credits
       };
       
       return res.status(200).json(snapshot);
@@ -148,6 +166,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           inv_6_name=EXCLUDED.inv_6_name, inv_6_actual=EXCLUDED.inv_6_actual, inv_6_expected=EXCLUDED.inv_6_expected, inv_7_name=EXCLUDED.inv_7_name, inv_7_actual=EXCLUDED.inv_7_actual, inv_7_expected=EXCLUDED.inv_7_expected, inv_8_name=EXCLUDED.inv_8_name, inv_8_actual=EXCLUDED.inv_8_actual, inv_8_expected=EXCLUDED.inv_8_expected, inv_9_name=EXCLUDED.inv_9_name, inv_9_actual=EXCLUDED.inv_9_actual, inv_9_expected=EXCLUDED.inv_9_expected, inv_10_name=EXCLUDED.inv_10_name, inv_10_actual=EXCLUDED.inv_10_actual, inv_10_expected=EXCLUDED.inv_10_expected,
           updated_at=now();
       `;
+
+      // Clear and rewrite transactions
+      await sql`DELETE FROM transactions WHERE month = ${qMonth} AND year = ${qYear}`;
+      for (const exp of data.expenses) {
+        if (exp.amount > 0 || exp.name) {
+          await sql`
+            INSERT INTO transactions (month, year, category, name, amount)
+            VALUES (${qMonth}, ${qYear}, ${exp.category}, ${exp.name || ''}, ${exp.amount || 0})
+          `;
+        }
+      }
+
+      // Clear and rewrite credits
+      await sql`DELETE FROM credit_ledger WHERE month = ${qMonth} AND year = ${qYear}`;
+      for (const cred of data.credits) {
+        await sql`
+          INSERT INTO credit_ledger (month, year, entity, amount, lent_or_owe, settled, borrowed)
+          VALUES (${qMonth}, ${qYear}, ${cred.entity}, ${cred.amount}, ${cred.lentOrOwe}, ${cred.settled}, ${cred.borrowed})
+        `;
+      }
       
       return res.status(200).json({ success: true });
     } catch (e) {
