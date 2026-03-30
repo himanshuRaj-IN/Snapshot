@@ -108,15 +108,18 @@ export async function createNewSnapshot(sourceMonthKey: string, destMonthKey: st
     income: [],
     distributions: [],
     expenses: [],
-    credits: [],
+    credits: [...oldSnap.credits], // Carry over existing ledger records!
     totalIncome: 0,
     totalDistribution: 0,
     expenseUnaccounted: 0,
-    expenseBudgets: { budget: 0, budgetSmt: 0, budgetUfs: 0, inSettlement: 0, settled: 0 }
+    expenseBudgets: { ...oldSnap.expenseBudgets, settled: 0 } // Carry over budgets but reset 'settled' progress
   };
 
-  // Push target states to backend immediately to cement them
-  await saveCoreSnapshot(newSnap);
+  // Push targets to backend immediately to cement them
+  await Promise.all([
+    saveCoreSnapshot(newSnap),
+    saveLedger(`${newMonth} ${newYear}`, newSnap.credits)
+  ]);
 
   return newSnap;
 }
