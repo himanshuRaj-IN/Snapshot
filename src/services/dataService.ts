@@ -4,7 +4,6 @@
 // The return types stay the same — components never import sampleData directly.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { Snapshot } from '../data/schema';
-import { MAR_2026 } from '../data/sampleData';
 
 /** Fetch the snapshot and all related tables for a given month key */
 export async function getSnapshot(_monthKey: string): Promise<Snapshot> {
@@ -32,10 +31,25 @@ export async function getSnapshot(_monthKey: string): Promise<Snapshot> {
       }
     }
   } catch (e) {
-    console.warn('API not available, falling back to mock data');
+    console.error('API failed, generating blank template state:', e);
   }
-  // Fallback ensures UI renders if Neon DB is empty
-  return MAR_2026; 
+  
+  // Create an explicit blank state so we never hallucinate the MAR_2026 mock data
+  const [m, y] = _monthKey.split('_');
+  return {
+    month: `${m || 'MARCH'} ${y || 2026}`,
+    opening: { investment: 0, saving: 0, checking: 0, creditGiven: 0, debtTaken: 0 },
+    closing: { investment: 0, saving: 0, checking: 0, creditGiven: 0, debtTaken: 0 },
+    income: [],
+    distributions: [],
+    investments: [],
+    totalIncome: 0,
+    totalDistribution: 0,
+    expenses: [],
+    expenseBudgets: { budget: 0, budgetSmt: 0, budgetUfs: 0, inSettlement: 0, settled: 0 },
+    expenseUnaccounted: 0,
+    credits: []
+  };
 }
 
 /** Upsert the Core Snapshot (Summary & Investment payload) */
@@ -94,15 +108,22 @@ export async function createNewSnapshot(sourceMonthKey: string, destMonthKey: st
     income: [],
     distributions: [],
     expenses: [],
-    credits: [],
+    // Credits/debts carry over persistently!
+    credits: oldSnap.credits || [],
     totalIncome: 0,
     totalDistribution: 0,
     expenseUnaccounted: 0,
     expenseBudgets: { budget: 0, budgetSmt: 0, budgetUfs: 0, inSettlement: 0, settled: 0 }
   };
 
-  // Push to backend immediately to cement it
+  // Push target states to backend immediately to cement them
   await saveCoreSnapshot(newSnap);
+  
+  // Persist the cloned credit ledger array to the new month's DB table
+  if (newSnap.credits.length > 0) {
+    await saveLedger(newSnap.month, newSnap.credits);
+  }
+
   return newSnap;
 }
 
