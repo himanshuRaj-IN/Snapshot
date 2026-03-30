@@ -1,0 +1,165 @@
+/* Shared styles for MajorExpenses, InvestmentSaving, CreditDebt */
+
+/* card-title + add button */
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-add-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.card-add-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+/* Expense category label */
+.exp-cat {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Unaccounted row */
+.row-unaccounted td { background: var(--amber-soft) !important; }
+.row-warning td { background: rgba(239,68,68,0.04) !important; }
+
+/* Inline add row */
+.inline-add-row td {
+  background: var(--accent-glow);
+  border-bottom: 1px solid var(--accent-soft) !important;
+  padding: 6px 12px;
+}
+.inline-input,
+.inline-select {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  padding: 5px 8px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.inline-input:focus,
+.inline-select:focus {
+  border-color: var(--accent);
+}
+.inline-input::placeholder { color: var(--text-muted); }
+.inline-select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+.inline-input-amount {
+  font-family: var(--font-mono);
+  text-align: right;
+  width: calc(100% - 30px);
+}
+.inline-amount-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.inline-save-btn {
+  background: var(--green-soft);
+  border: 1px solid rgba(34,197,94,0.3);
+  color: var(--green);
+  border-radius: var(--radius-sm);
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.inline-save-btn:hover { background: rgba(34,197,94,0.25); }
+
+/* Amber on val */
+.snap-table td.val.amber { color: var(--amber); }
+.snap-table td.val.red   { color: var(--red); }
+.snap-table td.val.green { color: var(--green); }
+
+/* Budget bars */
+.exp-budget-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.budget-row { display: flex; flex-direction: column; gap: 5px; }
+.budget-row-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+}
+.budget-bar-track {
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* Settlement rows */
+.exp-settlement {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Section total */
+.section-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: auto;
+}
+
+/* Credit summary */
+.credit-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border);
+}
+.credit-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+/* Horizontal scroll for narrow tables */
+.overflow-x { overflow-x: auto; }
