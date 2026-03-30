@@ -180,7 +180,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           )}
           <div className="exp-budget-grid">
             <div className="exp-settlement">
-              <span className="muted">In-Settlement (Flat NCR)</span>
+              <span className="muted">In-Settlement</span>
               <span className="mono">{fmt(budgets.inSettlement)}</span>
             </div>
             <div className="exp-settlement">
