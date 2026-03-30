@@ -39,13 +39,42 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   const budgetUfs = contingencyFund && contingencyFund.expected ? contingencyFund.expected : budgets.budgetUfs;
 
   const [adding, setAdding] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  
+  // Form states (Add/Edit)
   const [category, setCategory] = useState<ExpenseCategory>('FIXED ESSENTIALS');
   const [name, setName]         = useState('');
   const [amount, setAmount]     = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
+  // Split into categories with index preservation
+  const expensesWithIndex = expenses.map((e, i) => ({ ...e, originalIndex: i }));
+  
+  const settlementCats = ['IN-SETTLEMENT', 'SETTLED'];
+  const unforeseenCats = ['UNFORESEEN'];
+  const generalCats = EXPENSE_CATEGORIES.filter(c => !settlementCats.includes(c) && !unforeseenCats.includes(c) && c !== 'UNACCOUNTED');
+
+  const generalExpenses = expensesWithIndex.filter(e => generalCats.includes(e.category as ExpenseCategory) && (e.amount > 0 || e.name || e.originalIndex === editingIndex));
+  const settlementExpenses = expensesWithIndex.filter(e => settlementCats.includes(e.category) && (e.amount > 0 || e.name || e.originalIndex === editingIndex));
+  const unforeseenExpenses = expensesWithIndex.filter(e => unforeseenCats.includes(e.category) && (e.amount > 0 || e.name || e.originalIndex === editingIndex));
+  const unaccountedExpenses = expensesWithIndex.filter(e => e.category === 'UNACCOUNTED' && (e.amount > 0 || e.name || e.originalIndex === editingIndex));
+
+  const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccountedExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
+  const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
+
+  // Total out of pocket: SUM(All except Settled) - SUM(Settled)
+  const sumRemaining = expenses.filter(e => e.category !== 'SETTLED').reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const settledRecovery = expenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
+  const netTotal = sumRemaining - settledRecovery;
+
+  // Derive Unforeseen Budget from S-CONTINGENCY FUND expected amount
+  const contingencyFund = snapshot.investments.find(inv => inv.name === 'S-CONTINGENCY FUND');
+  const budgetUfs = contingencyFund && contingencyFund.expected ? contingencyFund.expected : budgets.budgetUfs;
+
   useEffect(() => {
     if (adding) {
+      setEditingIndex(null);
       setCategory('FIXED ESSENTIALS');
       setName('');
       setAmount('');
@@ -53,32 +82,103 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
     }
   }, [adding]);
 
-  const handleSave = () => {
+  const handleSaveAdd = () => {
     const amt = parseFloat(amount);
     if (!name.trim() || isNaN(amt) || amt <= 0) return;
-    const payload: ExpenseItem = {
-      category, name: name.trim(), amount: amt
-    };
-    
-    if (onSave) {
-      onSave([...expenses, payload]);
-    }
-    
+    const payload: ExpenseItem = { category, name: name.trim(), amount: amt };
+    if (onSave) onSave([...expenses, payload]);
     setAdding(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSave();
-    if (e.key === 'Escape') setAdding(false);
+  const handleStartEdit = (e: (ExpenseItem & { originalIndex: number })) => {
+    setAdding(false);
+    setEditingIndex(e.originalIndex);
+    setCategory(e.category as ExpenseCategory);
+    setName(e.name);
+    setAmount(e.amount.toString());
   };
 
-  const renderExpenseRow = (e: ExpenseItem, i: number) => (
-    <tr key={i}>
-      <td className="exp-cat">{e.category}</td>
-      <td>{e.name || <span className="muted">—</span>}</td>
-      <td className="val">{fmt(e.amount)}</td>
-    </tr>
-  );
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+    const amt = parseFloat(amount);
+    if (!name.trim() || isNaN(amt) || amt <= 0) return;
+    
+    const updated = [...expenses];
+    updated[editingIndex] = { category, name: name.trim(), amount: amt };
+    if (onSave) onSave(updated);
+    setEditingIndex(null);
+  };
+
+  const handleDelete = (originalIndex: number) => {
+    if (!window.confirm('Delete this transaction?')) return;
+    const updated = expenses.filter((_, i) => i !== originalIndex);
+    if (onSave) onSave(updated);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, isEdit: boolean) => {
+    if (e.key === 'Enter') isEdit ? handleSaveEdit() : handleSaveAdd();
+    if (e.key === 'Escape') isEdit ? setEditingIndex(null) : setAdding(false);
+  };
+
+  const renderExpenseRow = (e: (ExpenseItem & { originalIndex: number })) => {
+    const isEditing = editingIndex === e.originalIndex;
+
+    if (isEditing) {
+      return (
+        <tr key={e.originalIndex} className="inline-edit-row">
+          <td style={{ padding: '4px' }}>
+            <select
+              className="inline-select"
+              value={category}
+              onChange={ev => setCategory(ev.target.value as ExpenseCategory)}
+              onKeyDown={ev => handleKeyDown(ev, true)}
+              autoFocus
+            >
+              {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </td>
+          <td style={{ padding: '4px' }}>
+            <input
+              className="inline-input"
+              type="text"
+              value={name}
+              onChange={ev => setName(ev.target.value)}
+              onKeyDown={ev => handleKeyDown(ev, true)}
+            />
+          </td>
+          <td style={{ padding: '4px' }}>
+            <div className="inline-amount-cell">
+              <input
+                className="inline-input inline-input-amount mono"
+                type="number"
+                value={amount}
+                onChange={ev => setAmount(ev.target.value)}
+                onKeyDown={ev => handleKeyDown(ev, true)}
+              />
+              <button className="inline-save-btn" onClick={handleSaveEdit} title="Save">✓</button>
+              <button className="inline-save-btn" onClick={() => setEditingIndex(null)} title="Cancel" style={{ color: 'var(--red)' }}>✕</button>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    return (
+      <tr key={e.originalIndex} className="expense-row-hover">
+        <td className="exp-cat">{e.category}</td>
+        <td>{e.name || <span className="muted">—</span>}</td>
+        <td className="val">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+            <span className="mono">{fmt(e.amount)}</span>
+            <div className="row-actions">
+              <button className="icon-btn" onClick={() => handleStartEdit(e)} title="Edit">✎</button>
+              <button className="icon-btn" onClick={() => handleDelete(e.originalIndex)} title="Delete">✕</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -106,7 +206,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
                     className="inline-select"
                     value={category}
                     onChange={e => setCategory(e.target.value as ExpenseCategory)}
-                    onKeyDown={handleKeyDown}
+                    onKeyDown={ev => handleKeyDown(ev, false)}
                   >
                     {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -119,7 +219,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
                     placeholder="Description…"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    onKeyDown={handleKeyDown}
+                    onKeyDown={ev => handleKeyDown(ev, false)}
                   />
                 </td>
                 <td style={{ width: '30%' }}>
@@ -131,9 +231,9 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
                       placeholder="0"
                       value={amount}
                       onChange={e => setAmount(e.target.value)}
-                      onKeyDown={handleKeyDown}
+                      onKeyDown={ev => handleKeyDown(ev, false)}
                     />
-                    <button className="inline-save-btn" onClick={handleSave} title="Save (Enter)">✓</button>
+                    <button className="inline-save-btn" onClick={handleSaveAdd} title="Save (Enter)">✓</button>
                   </div>
                 </td>
               </tr>
