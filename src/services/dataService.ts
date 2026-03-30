@@ -108,8 +108,7 @@ export async function createNewSnapshot(sourceMonthKey: string, destMonthKey: st
     income: [],
     distributions: [],
     expenses: [],
-    // Credits/debts carry over persistently!
-    credits: oldSnap.credits || [],
+    credits: [],
     totalIncome: 0,
     totalDistribution: 0,
     expenseUnaccounted: 0,
@@ -118,11 +117,6 @@ export async function createNewSnapshot(sourceMonthKey: string, destMonthKey: st
 
   // Push target states to backend immediately to cement them
   await saveCoreSnapshot(newSnap);
-  
-  // Persist the cloned credit ledger array to the new month's DB table
-  if (newSnap.credits.length > 0) {
-    await saveLedger(newSnap.month, newSnap.credits);
-  }
 
   return newSnap;
 }
