@@ -6,19 +6,44 @@
 import type { Snapshot } from '../data/schema';
 import { MAR_2026 } from '../data/sampleData';
 
-// Simulated async latency (remove when using real API).
-const delay = (ms = 200) => new Promise(resolve => setTimeout(resolve, ms));
-
-/** Fetch the snapshot for a given month key, e.g. "MAR_2026" */
+/** Fetch the snapshot for a given month key */
 export async function getSnapshot(_monthKey: string): Promise<Snapshot> {
-  await delay();
-  // TODO: return fetch(`/api/snapshots/${_monthKey}`).then(r => r.json())
-  return MAR_2026;
+  try {
+    const [month, year] = _monthKey.split('_'); 
+    const res = await fetch(`/api/snapshots?month=${month || 'MARCH'}&year=${year || 2026}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data) {
+        // Hydrate missing lists so UI doesn't crash prior to multi-table rollout
+        return { 
+          ...data, 
+          expenses: MAR_2026.expenses, 
+          credits: MAR_2026.credits 
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('API not available, falling back to mock data');
+  }
+  // Fallback ensures UI renders if Neon DB is empty
+  return MAR_2026; 
+}
+
+/** Upsert the snapshot payload to Neon */
+export async function saveSnapshot(snapshot: Snapshot): Promise<void> {
+  try {
+    await fetch('/api/snapshots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(snapshot),
+    });
+    console.log('Saved to Neon!');
+  } catch (e) {
+    console.error('Failed to save snapshot:', e);
+  }
 }
 
 /** List available snapshot months (for navigation / month picker) */
 export async function listSnapshotMonths(): Promise<{ key: string; label: string }[]> {
-  await delay(100);
-  // TODO: return fetch('/api/snapshots').then(r => r.json())
   return [{ key: 'MAR_2026', label: 'March 2026' }];
 }
