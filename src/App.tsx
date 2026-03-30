@@ -128,40 +128,42 @@ export default function App() {
       {/* ── Header ───────────────────────────────────────────────────── */}
       <header className="app-header">
         <div className="app-header-inner">
+          {/* Logo (Left) */}
           <div className="app-logo">
             <span className="app-logo-icon">◈</span>
             <span className="app-logo-label">snapshot</span>
           </div>
+
+          {/* Title (Center) */}
+          <div className="app-header-center">
+            <span className="app-active-month-label">{snapshot.month.replace('_', ' ')} Snapshot</span>
+          </div>
           
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Controls (Right) */}
+          <div className="app-header-controls">
             <select 
               className="app-month-picker"
               value={dropdownKey || ''}
               onChange={(e) => setDropdownKey(e.target.value)}
-              style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: '4px', fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
             >
               {months.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
             </select>
             
             <button 
+              className="app-header-btn"
               onClick={handleGo}
-              style={{ padding: '6px 16px', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 600 }}
               title="Load selected snapshot"
             >
-              Go
+              🚀
             </button>
 
             <button 
+              className="app-header-btn app-header-btn-new"
               onClick={openCreateModal}
-              style={{ padding: '6px 12px', background: 'var(--accent)', color: '#000', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
-              title="Create new snapshot using closing balances"
+              title="Create New Snapshot"
             >
-              <span>+</span> New
+              ➕
             </button>
-          </div>
-
-          <div className="app-header-right">
-            <span className="badge badge-green">● Live</span>
           </div>
         </div>
       </header>

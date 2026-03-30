@@ -39,10 +39,10 @@
 .app-header-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 14px 28px;
-  display: flex;
+  padding: 10px 24px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
 }
 .app-logo {
@@ -50,30 +50,68 @@
   align-items: center;
   gap: 8px;
   user-select: none;
+  justify-self: start;
 }
 .app-logo-icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--accent);
   line-height: 1;
 }
 .app-logo-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: lowercase;
   color: var(--text-secondary);
 }
-.app-month {
+.app-header-center {
+  text-align: center;
+}
+.app-active-month-label {
   font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-primary);
+  color: var(--accent);
 }
-.app-header-right {
+.app-header-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  justify-self: end;
+}
+.app-month-picker {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  outline: none;
+}
+.app-header-btn {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.app-header-btn:hover {
+  background: var(--bg-hover-card);
+  border-color: var(--accent);
+}
+.app-header-btn-new {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Main */

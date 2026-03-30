@@ -282,6 +282,15 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
   border-right: 1px solid var(--border);
   flex-shrink: 0;
 }
+.hc-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  margin-bottom: 24px; /* Padding from opening and income cards */
+}
 .hc-badges {
   display: flex;
   flex-wrap: wrap;
@@ -291,15 +300,41 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
 .hc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
-  cursor: default;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+  max-width: 80px; /* Base width */
+}
+.hc-badge:hover {
+  max-width: 500px; /* Expand on hover */
+}
+.hc-badge-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.hc-badge-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 0;
+  opacity: 0;
+  width: 0;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.hc-badge:hover .hc-badge-details {
+  margin-left: 12px;
+  opacity: 1;
+  width: auto;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  padding-left: 12px;
 }
 .hc-badge-label { color: var(--text-muted); font-weight: 500; margin-right: 2px; }
 .hc-pass {
@@ -312,6 +347,10 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
   color: var(--red);
   border-color: rgba(239,68,68,0.15);
   box-shadow: 0 0 0 1px rgba(239,68,68,0.1);
+}
+.hc-delta {
+  font-weight: 700;
+  color: var(--red);
 }
 .hc-badge-icon { font-size: 0.8rem; }
 

@@ -130,14 +130,13 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
     <section className="summary-section">
       {/* ── Health Check strip ───────────────────────────────────────────── */}
       <div className="hc-strip">
-        <span className="hc-strip-label" style={{ fontWeight: 600 }}>Health</span>
         <div className="hc-badges">
-          <HealthBadge label="Income" pass={isIncOk} delta={computedTotal - incomeDistributed} />
-          <HealthBadge label="Inv"    pass={isInvOk} delta={closing.investment - expInv} icon="📈" />
-          <HealthBadge label="Sav"    pass={isSavOk} delta={closing.saving - expSav} icon="💰" />
-          <HealthBadge label="Chk"    pass={isChkOk} delta={closing.checking - expChk} icon="🏦" />
-          <HealthBadge label="Cred"   pass={isCgOk}  delta={closing.creditGiven - expCg} icon="🤝" />
-          <HealthBadge label="Debt"   pass={isDtOk}  delta={closing.debtTaken - expDt} icon="💳" />
+          <HealthBadge label="Income" pass={isIncOk} actual={computedTotal} expected={incomeDistributed} icon="💰" />
+          <HealthBadge label="Inv"    pass={isInvOk} actual={closing.investment} expected={expInv} icon="📈" />
+          <HealthBadge label="Sav"    pass={isSavOk} actual={closing.saving} expected={expSav} icon="🏦" />
+          <HealthBadge label="Chk"    pass={isChkOk} actual={closing.checking} expected={expChk} icon="🏧" />
+          <HealthBadge label="Cred"   pass={isCgOk}  actual={closing.creditGiven} expected={expCg} icon="🤝" />
+          <HealthBadge label="Debt"   pass={isDtOk}  actual={closing.debtTaken} expected={expDt} icon="💳" />
         </div>
       </div>
 
@@ -361,15 +360,22 @@ function ClosingInput({ label, value, onChange, expected }: { label: string, val
   );
 }
 
-function HealthBadge({ label, pass, delta, icon }: { label: string; pass: boolean; delta: number; icon?: string }) {
-  const diff = Math.round(delta);
-  const title = pass ? `${label} is balanced` : `${label} mismatch: ${diff > 0 ? '+' : ''}${diff.toLocaleString('en-IN')}`;
+function HealthBadge({ label, pass, actual, expected, icon }: { label: string; pass: boolean; actual: number; expected: number; icon?: string }) {
+  const delta = actual - expected;
+  const showDelta = !pass && Math.abs(delta) >= 1;
   
   return (
-    <div className={`hc-badge ${pass ? 'hc-pass' : 'hc-fail'}`} title={title}>
-      {icon && <span className="hc-badge-icon">{icon}</span>}
-      <span className="hc-badge-label">{label}</span>
-      <span className="hc-badge-status">{pass ? '✓' : '✕'}</span>
+    <div className={`hc-badge ${pass ? 'hc-pass' : 'hc-fail'}`}>
+      <div className="hc-badge-compact">
+        {icon && <span className="hc-badge-icon">{icon}</span>}
+        <span className="hc-badge-label">{label}</span>
+        <span className="hc-badge-status">{pass ? '✓' : '✕'}</span>
+      </div>
+      <div className="hc-badge-details">
+        <span className="mono">Act: {fmt(actual)}</span>
+        <span className="mono">Exp: {fmt(expected)}</span>
+        {showDelta && <span className="mono hc-delta">Diff: {fmt(delta)}</span>}
+      </div>
     </div>
   );
 }
