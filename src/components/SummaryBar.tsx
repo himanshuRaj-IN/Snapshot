@@ -116,13 +116,28 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
   const expCg  = opening.creditGiven + dist('Credit Given') - dist('Credit Repaid');
   const expDt  = opening.debtTaken   + dist('Debt Taken')   - dist('Debt Repaid');
 
+  // Health Checks
+  const isInvOk = Math.abs(closing.investment - expInv) < 1;
+  const isSavOk = Math.abs(closing.saving - expSav) < 1;
+  const isChkOk = Math.abs(closing.checking - expChk) < 1;
+  const isCgOk  = Math.abs(closing.creditGiven - expCg) < 1;
+  const isDtOk  = Math.abs(closing.debtTaken - expDt) < 1;
+
+  const incomeDistributed = dist('Investment') + dist('Saving') + dist('Checking');
+  const isIncOk = Math.abs(computedTotal - incomeDistributed) < 1;
+
   return (
     <section className="summary-section">
-      {/* ── Health Check strip (Placeholder) ─────────────────────────────── */}
+      {/* ── Health Check strip ───────────────────────────────────────────── */}
       <div className="hc-strip">
         <span className="hc-strip-label" style={{ fontWeight: 600 }}>Health</span>
-        <div style={{ color: 'var(--text-muted)', fontSize: '0.75em', textTransform: 'none', letterSpacing: 'normal' }}>
-          Placeholder card for future use
+        <div className="hc-badges">
+          <HealthBadge label="Income" pass={isIncOk} delta={computedTotal - incomeDistributed} />
+          <HealthBadge label="Inv"    pass={isInvOk} delta={closing.investment - expInv} icon="📈" />
+          <HealthBadge label="Sav"    pass={isSavOk} delta={closing.saving - expSav} icon="💰" />
+          <HealthBadge label="Chk"    pass={isChkOk} delta={closing.checking - expChk} icon="🏦" />
+          <HealthBadge label="Cred"   pass={isCgOk}  delta={closing.creditGiven - expCg} icon="🤝" />
+          <HealthBadge label="Debt"   pass={isDtOk}  delta={closing.debtTaken - expDt} icon="💳" />
         </div>
       </div>
 
@@ -342,6 +357,19 @@ function ClosingInput({ label, value, onChange, expected }: { label: string, val
         />
         <span className="mono" style={{ fontSize: '0.64rem', color: 'var(--text-muted)', paddingRight: '4px' }}>{fmt(expected)}</span>
       </div>
+    </div>
+  );
+}
+
+function HealthBadge({ label, pass, delta, icon }: { label: string; pass: boolean; delta: number; icon?: string }) {
+  const diff = Math.round(delta);
+  const title = pass ? `${label} is balanced` : `${label} mismatch: ${diff > 0 ? '+' : ''}${diff.toLocaleString('en-IN')}`;
+  
+  return (
+    <div className={`hc-badge ${pass ? 'hc-pass' : 'hc-fail'}`} title={title}>
+      {icon && <span className="hc-badge-icon">{icon}</span>}
+      <span className="hc-badge-label">{label}</span>
+      <span className="hc-badge-status">{pass ? '✓' : '✕'}</span>
     </div>
   );
 }

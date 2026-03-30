@@ -286,28 +286,34 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  flex: 1;
 }
 .hc-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.74rem;
-  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   border: 1px solid transparent;
-  transition: opacity 0.15s;
+  transition: all 0.2s ease;
+  cursor: default;
 }
+.hc-badge-label { color: var(--text-muted); font-weight: 500; margin-right: 2px; }
 .hc-pass {
   background: var(--green-soft);
   color: var(--green);
-  border-color: rgba(34,197,94,0.2);
+  border-color: rgba(34,197,94,0.15);
 }
 .hc-fail {
   background: var(--red-soft);
   color: var(--red);
-  border-color: rgba(239,68,68,0.2);
+  border-color: rgba(239,68,68,0.15);
+  box-shadow: 0 0 0 1px rgba(239,68,68,0.1);
 }
+.hc-badge-icon { font-size: 0.8rem; }
 
 /* Responsive */
 @media (max-width: 1100px) {
