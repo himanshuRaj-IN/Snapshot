@@ -13,32 +13,41 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   const [months, setMonths] = useState<{key: string, label: string}[]>([]);
-  const [currentKey, setCurrentKey] = useState<string | null>(null);
+  const [dropdownKey, setDropdownKey] = useState<string | null>(null);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
   // 1. On mount, fetch available months and select the most recent one automatically
   useEffect(() => {
     listSnapshotMonths().then(res => {
       setMonths(res);
       if (res.length > 0) {
-        setCurrentKey(res[0].key);
+        setDropdownKey(res[0].key);
+        setActiveKey(res[0].key);
       } else {
         // Fallback if absolutely nothing is in DB
-        setCurrentKey('MAR_2026');
+        setDropdownKey('MAR_2026');
+        setActiveKey('MAR_2026');
       }
     });
   }, []);
 
-  // 2. Fetch the snapshot whenever the current key changes
+  // 2. Fetch the snapshot ONLY whenever the ACTIVE key changes
   useEffect(() => {
-    if (!currentKey) return;
+    if (!activeKey) return;
     
     setLoading(true);
-    getSnapshot(currentKey)
+    getSnapshot(activeKey)
       .then(data => {
         setSnapshot(data);
       })
       .finally(() => setLoading(false));
-  }, [currentKey]);
+  }, [activeKey]);
+
+  const handleGo = () => {
+    if (dropdownKey && dropdownKey !== activeKey) {
+      setActiveKey(dropdownKey);
+    }
+  };
 
   // 3. Unblocked "New Snapshot" modal overlay flow
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -46,7 +55,7 @@ export default function App() {
   const [createTarget, setCreateTarget] = useState('');
 
   const openCreateModal = () => {
-    setCreateSource(currentKey || (months.length > 0 ? months[0].key : 'MARCH_2026'));
+    setCreateSource(activeKey || (months.length > 0 ? months[0].key : 'MARCH_2026'));
     setCreateTarget('');
     setShowCreateModal(true);
   };
@@ -72,14 +81,16 @@ export default function App() {
     }
 
     setLoading(true);
-    // Base the new snapshot on whatever the user specifically selected!
     const newSnap = await createNewSnapshot(createSource, formatted);
-    
     setSnapshot(newSnap);
     
     const updatedList = await listSnapshotMonths();
     setMonths(updatedList);
-    setCurrentKey(formatted);
+    
+    // Auto-navigate to the newly created snapshot
+    setDropdownKey(formatted);
+    setActiveKey(formatted);
+    
     setShowCreateModal(false);
     setLoading(false);
   };
@@ -125,13 +136,21 @@ export default function App() {
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <select 
               className="app-month-picker"
-              value={currentKey || ''}
-              onChange={(e) => setCurrentKey(e.target.value)}
+              value={dropdownKey || ''}
+              onChange={(e) => setDropdownKey(e.target.value)}
               style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: '4px', fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
             >
               {months.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
             </select>
             
+            <button 
+              onClick={handleGo}
+              style={{ padding: '6px 16px', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 600 }}
+              title="Load selected snapshot"
+            >
+              Go
+            </button>
+
             <button 
               onClick={openCreateModal}
               style={{ padding: '6px 12px', background: 'var(--accent)', color: '#000', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
