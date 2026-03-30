@@ -179,23 +179,46 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           </div>
         </div>
 
-        {/* ── Settlement Block ────────────────────────────────────────── */}
+        {/* ── In-Settlement Block ─────────────────────────────────────── */}
         <div className="expense-block">
           <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-            SETTLEMENT
+            IN-SETTLEMENT
           </div>
-          {settlementExpenses.length > 0 && (
-            <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '8px' }}>
+          {settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').length > 0 && (
+            <div style={{ maxHeight: '55px', overflowY: 'auto', marginBottom: '8px' }}>
               <table className="snap-table">
                 <tbody>
-                  {settlementExpenses.map(renderExpenseRow)}
+                  {settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').map(renderExpenseRow)}
                 </tbody>
               </table>
             </div>
           )}
           <div className="exp-budget-grid">
             <BudgetRow label="In-Settlement" budget={budgets.inSettlement} spent={totalInSettlement} />
-            <BudgetRow label="Settled" budget={budgets.settled} spent={totalSettled} />
+          </div>
+        </div>
+
+        {/* ── Settled Block ───────────────────────────────────────────── */}
+        <div className="expense-block">
+          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+            SETTLED
+          </div>
+          {settlementExpenses.filter(e => e.category === 'SETTLED').length > 0 && (
+            <div style={{ maxHeight: '55px', overflowY: 'auto', marginBottom: '8px' }}>
+              <table className="snap-table">
+                <tbody>
+                  {settlementExpenses.filter(e => e.category === 'SETTLED').map(renderExpenseRow)}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="exp-budget-grid">
+            <div className="budget-row" style={{ flexDirection: 'row', justifyContent: 'space-between', padding: '4px 0' }}>
+              <span className="muted">Settled Recovery</span>
+              <span className="mono" style={{ color: 'var(--green)', fontWeight: 600 }}>
+                {totalSettled > 0 ? '+' : ''}{totalSettled.toLocaleString('en-IN')}
+              </span>
+            </div>
           </div>
         </div>
 
