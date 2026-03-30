@@ -3,6 +3,20 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
+    if (req.query.list === 'true') {
+      try {
+        const { rows } = await sql`SELECT month, year FROM snapshots ORDER BY year DESC, month DESC`;
+        const list = rows.map(r => ({
+          key: `${String(r.month).substring(0,3).toUpperCase()}_${r.year}`,
+          label: `${r.month} ${r.year}`
+        }));
+        return res.status(200).json(list);
+      } catch (e) {
+        console.error(e);
+        return res.status(500).json({ error: 'DB Read Error' });
+      }
+    }
+
     const qMonth = (req.query.month as string) || 'MARCH';
     const qYear = parseInt((req.query.year as string) || '2026', 10);
 

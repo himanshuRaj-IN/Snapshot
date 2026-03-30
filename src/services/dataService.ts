@@ -108,9 +108,13 @@ export async function createNewSnapshot(sourceMonthKey: string, destMonthKey: st
 
 /** List available snapshot months (for navigation / month picker) */
 export async function listSnapshotMonths(): Promise<{ key: string; label: string }[]> {
-  // For now, returning array to support March and April for testing
-  return [
-    { key: 'MAR_2026', label: 'March 2026' },
-    { key: 'APR_2026', label: 'April 2026' }
-  ];
+  try {
+    const res = await fetch('/api/snapshots?list=true');
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn('Could not list months');
+  }
+  return [{ key: 'MAR_2026', label: 'March 2026' }];
 }

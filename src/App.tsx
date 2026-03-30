@@ -13,43 +13,54 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   const [months, setMonths] = useState<{key: string, label: string}[]>([]);
-  const [currentKey, setCurrentKey] = useState('MAR_2026');
-  
-  const [pendingMonth, setPendingMonth] = useState<{key: string, label: string} | null>(null);
+  const [currentKey, setCurrentKey] = useState<string | null>(null);
 
+  // 1. On mount, fetch available months and select the most recent one automatically
   useEffect(() => {
-    listSnapshotMonths().then(setMonths);
+    listSnapshotMonths().then(res => {
+      setMonths(res);
+      if (res.length > 0) {
+        setCurrentKey(res[0].key);
+      } else {
+        // Fallback if absolutely nothing is in DB
+        setCurrentKey('MAR_2026');
+      }
+    });
   }, []);
 
+  // 2. Fetch the snapshot whenever the current key changes
   useEffect(() => {
+    if (!currentKey) return;
+    
     setLoading(true);
     getSnapshot(currentKey)
       .then(data => {
-        // If dataService returned our mock/fallback or the exact month, we check if the label matches.
-        // A simple check is if data.month doesn't match the requested key's string format roughly, 
-        // it means we got a null/fallback and should prompt creation.
-        const [m, y] = currentKey.split('_');
-        const expected = `${m} ${y}`;
-        if (data.month !== expected) {
-          // Trigger create dialog
-          setPendingMonth(months.find(m => m.key === currentKey) || { key: currentKey, label: expected });
-          setLoading(false);
-          return;
-        }
-        
         setSnapshot(data);
-        setPendingMonth(null);
       })
       .finally(() => setLoading(false));
-  }, [currentKey, months]);
+  }, [currentKey]);
 
+  // 3. Unblocked "New Snapshot" flow triggered by explicit button click
   const handleCreateNew = async () => {
-    if (!pendingMonth) return;
+    const input = window.prompt("Enter new month key (e.g. MAY_2026):");
+    if (!input) return;
+    
+    const formatted = input.toUpperCase().replace(/\s+/g, '_');
+    if (!/^[A-Z]{3}_\d{4}$/.test(formatted)) {
+      alert('Invalid format. Must be formatted like MAY_2026 or APR 2026');
+      return;
+    }
+
     setLoading(true);
-    // Hardcoded to base off MAR_2026 for now, or you could base off current snapshot if exists
-    const newSnap = await createNewSnapshot('MAR_2026', pendingMonth.key);
+    // Copy opening balances from whatever you were just looking at!
+    const baseMonth = currentKey || 'MAR_2026';
+    const newSnap = await createNewSnapshot(baseMonth, formatted);
+    
     setSnapshot(newSnap);
-    setPendingMonth(null);
+    
+    const updatedList = await listSnapshotMonths();
+    setMonths(updatedList);
+    setCurrentKey(formatted);
     setLoading(false);
   };
 
@@ -70,35 +81,11 @@ export default function App() {
     await saveLedger(snapshot.month, credits);
   };
 
-  if (loading) {
+  if (loading && !snapshot) {
     return (
       <div className="app-loading">
         <div className="spinner" />
         <p>Loading snapshot…</p>
-      </div>
-    );
-  }
-
-  // Pending creation overlay
-  if (pendingMonth) {
-    return (
-      <div className="app-loading" style={{ flexDirection: 'column', gap: '20px' }}>
-        <h2>Initialize {pendingMonth.label}</h2>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          This will carry over your closing balances from the previous session into the opening balances for {pendingMonth.label}.
-        </p>
-        <button 
-          onClick={handleCreateNew}
-          style={{ padding: '10px 20px', background: 'var(--accent)', color: 'var(--bg)', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Create Snapshot
-        </button>
-        <button 
-          onClick={() => setCurrentKey('MAR_2026')}
-          style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
-        >
-          Cancel & Return
-        </button>
       </div>
     );
   }
@@ -115,14 +102,24 @@ export default function App() {
             <span className="app-logo-label">snapshot</span>
           </div>
           
-          <select 
-            className="app-month-picker"
-            value={currentKey}
-            onChange={(e) => setCurrentKey(e.target.value)}
-            style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: '4px', fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-mono)' }}
-          >
-            {months.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
-          </select>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <select 
+              className="app-month-picker"
+              value={currentKey || ''}
+              onChange={(e) => setCurrentKey(e.target.value)}
+              style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: '4px', fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+            >
+              {months.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+            </select>
+            
+            <button 
+              onClick={handleCreateNew}
+              style={{ padding: '6px 12px', background: 'var(--accent)', color: '#000', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
+              title="Create new snapshot using current closing balances"
+            >
+              <span>+</span> New
+            </button>
+          </div>
 
           <div className="app-header-right">
             <span className="badge badge-green">● Live</span>
