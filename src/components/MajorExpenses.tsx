@@ -147,6 +147,13 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           {generalExpenses.length > 0 && (
             <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
               <table className="snap-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Name</th>
+                    <th className="right">Amount</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {generalExpenses.map(renderExpenseRow)}
                 </tbody>
@@ -184,6 +191,13 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           {settlementExpenses.length > 0 && (
             <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '8px' }}>
               <table className="snap-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Name</th>
+                    <th className="right">Amount</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {settlementExpenses.map(renderExpenseRow)}
                 </tbody>
@@ -198,8 +212,15 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
             UNFORESEEN
           </div>
           {unforeseenExpenses.length > 0 && (
-            <div style={{ maxHeight: '55px', overflowY: 'auto', marginBottom: '8px' }}>
+            <div style={{ maxHeight: '75px', overflowY: 'auto', marginBottom: '8px' }}>
               <table className="snap-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Name</th>
+                    <th className="right">Amount</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {unforeseenExpenses.map(renderExpenseRow)}
                 </tbody>
