@@ -15,29 +15,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   const budgets = snapshot.expenseBudgets;
   const unaccounted = snapshot.expenseUnaccounted;
 
-  // Split into categories
-  const settlementCats = ['IN-SETTLEMENT', 'SETTLED'];
-  const unforeseenCats = ['UNFORESEEN'];
-  const generalCats = EXPENSE_CATEGORIES.filter(c => !settlementCats.includes(c) && !unforeseenCats.includes(c) && c !== 'UNACCOUNTED');
-
-  const generalExpenses = expenses.filter(e => generalCats.includes(e.category as ExpenseCategory) && (e.amount > 0 || e.name));
-  const settlementExpenses = expenses.filter(e => settlementCats.includes(e.category) && (e.amount > 0 || e.name));
-  const unforeseenExpenses = expenses.filter(e => unforeseenCats.includes(e.category) && (e.amount > 0 || e.name));
-  const unaccountedExpenses = expenses.filter(e => e.category === 'UNACCOUNTED' && (e.amount > 0 || e.name));
-
-  const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccountedExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
-  const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
-  const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
-
-  // Total out of pocket: SUM(All except Settled) - SUM(Settled)
-  const sumRemaining = expenses.filter(e => e.category !== 'SETTLED').reduce((s, e) => s + e.amount, 0) + unaccounted;
-  const settledRecovery = expenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
-  const netTotal = sumRemaining - settledRecovery;
-
-  // Derive Unforeseen Budget from S-CONTINGENCY FUND expected amount
-  const contingencyFund = snapshot.investments.find(inv => inv.name === 'S-CONTINGENCY FUND');
-  const budgetUfs = contingencyFund && contingencyFund.expected ? contingencyFund.expected : budgets.budgetUfs;
-
   const [adding, setAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   
