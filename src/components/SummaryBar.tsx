@@ -111,7 +111,7 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
 
   // Expected calculations
   const expInv = opening.investment + dist('Investment');
-  const expSav = opening.saving     + dist('Saving');
+  const expSav = opening.saving     + dist('Saving') + dist('Credit Repaid') - dist('Credit Given');
   const expChk = opening.checking   + dist('Checking');
   const expCg  = opening.creditGiven + dist('Credit Given') - dist('Credit Repaid');
   const expDt  = opening.debtTaken   + dist('Debt Taken')   - dist('Debt Repaid');
