@@ -175,7 +175,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           </table>
           <div className="exp-budget-grid" style={{ marginTop: '12px' }}>
             <BudgetRow label="Budget" budget={budgets.budget} spent={totalGeneral} />
-            <BudgetRow label="Budget SMT" budget={budgets.budgetSmt} spent={0} />
           </div>
         </div>
 
@@ -193,15 +192,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
               </table>
             </div>
           )}
-          <div className="exp-budget-grid">
-            <BudgetRow label="In-Settlement" budget={budgets.inSettlement} spent={totalInSettlement} />
-            <div className="budget-row" style={{ flexDirection: 'row', justifyContent: 'space-between', padding: '4px 0' }}>
-              <span className="muted">Settled Recovery</span>
-              <span className="mono" style={{ color: 'var(--green)', fontWeight: 600 }}>
-                {totalSettled > 0 ? '+' : ''}{totalSettled.toLocaleString('en-IN')}
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* ── Unforeseen Block ────────────────────────────────────────── */}
