@@ -18,13 +18,14 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   // Split into categories
   const settlementCats = ['IN-SETTLEMENT', 'SETTLED'];
   const unforeseenCats = ['UNFORESEEN'];
-  const generalCats = EXPENSE_CATEGORIES.filter(c => !settlementCats.includes(c) && !unforeseenCats.includes(c));
+  const generalCats = EXPENSE_CATEGORIES.filter(c => !settlementCats.includes(c) && !unforeseenCats.includes(c) && c !== 'UNACCOUNTED');
 
   const generalExpenses = expenses.filter(e => generalCats.includes(e.category as ExpenseCategory) && (e.amount > 0 || e.name));
   const settlementExpenses = expenses.filter(e => settlementCats.includes(e.category) && (e.amount > 0 || e.name));
   const unforeseenExpenses = expenses.filter(e => unforeseenCats.includes(e.category) && (e.amount > 0 || e.name));
+  const unaccountedExpenses = expenses.filter(e => e.category === 'UNACCOUNTED' && (e.amount > 0 || e.name));
 
-  const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccountedExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
   const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
   const totalSettled = settlementExpenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
   const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
@@ -145,19 +146,31 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
             GENERAL EXPENSES
           </div>
-          <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
-            <table className="snap-table">
-              <tbody>
-                {generalExpenses.map(renderExpenseRow)}
-              </tbody>
-            </table>
-          </div>
+          {generalExpenses.length > 0 && (
+            <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
+              <table className="snap-table">
+                <tbody>
+                  {generalExpenses.map(renderExpenseRow)}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
           <table className="snap-table" style={{ borderTop: '1px solid var(--border)', marginTop: '4px' }}>
             <tbody>
-              <tr className="row-unaccounted">
-                <td colSpan={2} className="exp-cat">Unaccounted</td>
-                <td className="val amber">{fmt(unaccounted)}</td>
-              </tr>
+              {unaccountedExpenses.map((e, i) => (
+                <tr key={`unacc-${i}`} className="row-unaccounted">
+                  <td className="exp-cat amber">{e.category}</td>
+                  <td className="amber">{e.name || <span className="muted">—</span>}</td>
+                  <td className="val amber mono">{fmt(e.amount)}</td>
+                </tr>
+              ))}
+              {(unaccounted > 0 || unaccounted < 0) && (
+                <tr className="row-unaccounted">
+                  <td colSpan={2} className="exp-cat amber">Unassigned Gap</td>
+                  <td className="val amber mono">{fmt(unaccounted)}</td>
+                </tr>
+              )}
             </tbody>
           </table>
           <div className="exp-budget-grid" style={{ marginTop: '12px' }}>
