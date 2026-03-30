@@ -29,9 +29,10 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
   const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
 
-  // Total out of pocket ignores 'SETTLED'
-  const settledSum = expenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
-  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0) + unaccounted - settledSum;
+  // Total out of pocket: SUM(All except Settled) - SUM(Settled)
+  const sumRemaining = expenses.filter(e => e.category !== 'SETTLED').reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const settledRecovery = expenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
+  const netTotal = sumRemaining - settledRecovery;
 
   // Derive Unforeseen Budget from S-CONTINGENCY FUND expected amount
   const contingencyFund = snapshot.investments.find(inv => inv.name === 'S-CONTINGENCY FUND');
@@ -148,13 +149,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           {generalExpenses.length > 0 && (
             <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
               <table className="snap-table">
-                <thead>
-                  <tr>
-                    <th>Category</th>
-                    <th>Name</th>
-                    <th className="right">Amount</th>
-                  </tr>
-                </thead>
                 <tbody>
                   {generalExpenses.map(renderExpenseRow)}
                 </tbody>
@@ -189,13 +183,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           {settlementExpenses.length > 0 && (
             <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '8px' }}>
               <table className="snap-table">
-                <thead>
-                  <tr>
-                    <th>Category</th>
-                    <th>Name</th>
-                    <th className="right">Amount</th>
-                  </tr>
-                </thead>
                 <tbody>
                   {settlementExpenses.map(renderExpenseRow)}
                 </tbody>
@@ -212,13 +199,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           {unforeseenExpenses.length > 0 && (
             <div style={{ maxHeight: '75px', overflowY: 'auto', marginBottom: '8px' }}>
               <table className="snap-table">
-                <thead>
-                  <tr>
-                    <th>Category</th>
-                    <th>Name</th>
-                    <th className="right">Amount</th>
-                  </tr>
-                </thead>
                 <tbody>
                   {unforeseenExpenses.map(renderExpenseRow)}
                 </tbody>
@@ -241,7 +221,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
       {/* ── Global Total ───────────────────────────────────────────── */}
       <div className="section-total" style={{ marginTop: 'auto', paddingTop: '16px' }}>
         <span>Total Expenses (Net)</span>
-        <span className="mono red">{totalExpense.toLocaleString('en-IN')}</span>
+        <span className="mono red">{netTotal.toLocaleString('en-IN')}</span>
       </div>
     </div>
   );
