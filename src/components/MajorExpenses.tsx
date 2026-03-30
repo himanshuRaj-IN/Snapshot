@@ -25,6 +25,8 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   const unforeseenExpenses = expenses.filter(e => unforeseenCats.includes(e.category) && (e.amount > 0 || e.name));
 
   const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
+  const totalSettled = settlementExpenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
   const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
 
   // Total out of pocket ignores 'SETTLED'
@@ -179,14 +181,8 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
             </div>
           )}
           <div className="exp-budget-grid">
-            <div className="exp-settlement">
-              <span className="muted">In-Settlement</span>
-              <span className="mono">{fmt(budgets.inSettlement)}</span>
-            </div>
-            <div className="exp-settlement">
-              <span className="muted">Settled</span>
-              <span className="mono">{fmt(budgets.settled)}</span>
-            </div>
+            <BudgetRow label="In-Settlement" budget={budgets.inSettlement} spent={totalInSettlement} />
+            <BudgetRow label="Settled" budget={budgets.settled} spent={totalSettled} />
           </div>
         </div>
 
