@@ -230,9 +230,7 @@ export default function App() {
 
         <div className="grid-bottom">
           <MajorExpenses
-            expenses={snapshot.expenses}
-            budgets={snapshot.expenseBudgets}
-            unaccounted={snapshot.expenseUnaccounted}
+            snapshot={snapshot}
             onSave={handleSaveExpenses}
           />
           <InvestmentSaving 

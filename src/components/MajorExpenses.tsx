@@ -1,19 +1,40 @@
 import { useState, useRef, useEffect } from 'react';
-import type { ExpenseItem, ExpenseBudgets } from '../data/schema';
+import type { ExpenseItem, Snapshot } from '../data/schema';
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from './AddExpenseModal';
 import './Sections.css';
 
 interface Props {
-  expenses: ExpenseItem[];
-  budgets: ExpenseBudgets;
-  unaccounted: number;
+  snapshot: Snapshot;
   onSave?: (expenses: ExpenseItem[]) => void;
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function MajorExpenses({ expenses, budgets, unaccounted, onSave }: Props) {
-  const total = expenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
+export default function MajorExpenses({ snapshot, onSave }: Props) {
+  const expenses = snapshot.expenses || [];
+  const budgets = snapshot.expenseBudgets;
+  const unaccounted = snapshot.expenseUnaccounted;
+
+  // Split into categories
+  const settlementCats = ['IN-SETTLEMENT', 'SETTLED'];
+  const unforeseenCats = ['UNFORESEEN'];
+  const generalCats = EXPENSE_CATEGORIES.filter(c => !settlementCats.includes(c) && !unforeseenCats.includes(c));
+
+  const generalExpenses = expenses.filter(e => generalCats.includes(e.category as ExpenseCategory) && (e.amount > 0 || e.name));
+  const settlementExpenses = expenses.filter(e => settlementCats.includes(e.category) && (e.amount > 0 || e.name));
+  const unforeseenExpenses = expenses.filter(e => unforeseenCats.includes(e.category) && (e.amount > 0 || e.name));
+
+  const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
+
+  // Total out of pocket ignores 'SETTLED'
+  const settledSum = expenses.filter(e => e.category === 'SETTLED').reduce((s, e) => s + e.amount, 0);
+  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0) + unaccounted - settledSum;
+
+  // Derive Unforeseen Budget from S-CONTINGENCY FUND expected amount
+  const contingencyFund = snapshot.investments.find(inv => inv.name === 'S-CONTINGENCY FUND');
+  const budgetUfs = contingencyFund && contingencyFund.expected ? contingencyFund.expected : budgets.budgetUfs;
+
   const [adding, setAdding] = useState(false);
   const [category, setCategory] = useState<ExpenseCategory>('FIXED ESSENTIALS');
   const [name, setName]         = useState('');
@@ -48,8 +69,16 @@ export default function MajorExpenses({ expenses, budgets, unaccounted, onSave }
     if (e.key === 'Escape') setAdding(false);
   };
 
+  const renderExpenseRow = (e: ExpenseItem, i: number) => (
+    <tr key={i}>
+      <td className="exp-cat">{e.category}</td>
+      <td>{e.name || <span className="muted">—</span>}</td>
+      <td className="val">{fmt(e.amount)}</td>
+    </tr>
+  );
+
   return (
-    <div className="card">
+    <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="card-title">
         <span className="card-title-icon" style={{ background: 'var(--red-soft)', color: 'var(--red)' }}>↓</span>
         Major Expenses
@@ -62,91 +91,130 @@ export default function MajorExpenses({ expenses, budgets, unaccounted, onSave }
         >{adding ? '✕' : '＋'}</button>
       </div>
 
-      <table className="snap-table">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>Name</th>
-            <th className="right">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* ── Inline Add Row (top) ───────────────────────────────────── */}
-          {adding && (
-            <tr className="inline-add-row">
-              <td>
-                <select
-                  className="inline-select"
-                  value={category}
-                  onChange={e => setCategory(e.target.value as ExpenseCategory)}
-                  onKeyDown={handleKeyDown}
-                >
-                  {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </td>
-              <td>
-                <input
-                  ref={nameRef}
-                  className="inline-input"
-                  type="text"
-                  placeholder="Description…"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-              </td>
-              <td>
-                <div className="inline-amount-cell">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        
+        {/* ── Add Row ───────────────────────────────────────────── */}
+        {adding && (
+          <table className="snap-table" style={{ marginBottom: 0 }}>
+            <tbody>
+              <tr className="inline-add-row" style={{ display: 'flex' }}>
+                <td style={{ width: '30%', paddingRight: '8px' }}>
+                  <select
+                    className="inline-select"
+                    value={category}
+                    onChange={e => setCategory(e.target.value as ExpenseCategory)}
+                    onKeyDown={handleKeyDown}
+                  >
+                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </td>
+                <td style={{ width: '40%', paddingRight: '8px' }}>
                   <input
-                    className="inline-input inline-input-amount mono"
-                    type="number"
-                    min="1"
-                    placeholder="0"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
+                    ref={nameRef}
+                    className="inline-input"
+                    type="text"
+                    placeholder="Description…"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
                     onKeyDown={handleKeyDown}
                   />
-                  <button className="inline-save-btn" onClick={handleSave} title="Save (Enter)">✓</button>
-                </div>
-              </td>
-            </tr>
+                </td>
+                <td style={{ width: '30%' }}>
+                  <div className="inline-amount-cell">
+                    <input
+                      className="inline-input inline-input-amount mono"
+                      type="number"
+                      min="1"
+                      placeholder="0"
+                      value={amount}
+                      onChange={e => setAmount(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                    />
+                    <button className="inline-save-btn" onClick={handleSave} title="Save (Enter)">✓</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+
+        {/* ── General Block ───────────────────────────────────────────── */}
+        <div className="expense-block">
+          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+            GENERAL EXPENSES
+          </div>
+          <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
+            <table className="snap-table">
+              <tbody>
+                {generalExpenses.map(renderExpenseRow)}
+              </tbody>
+            </table>
+          </div>
+          <table className="snap-table" style={{ borderTop: '1px solid var(--border)', marginTop: '4px' }}>
+            <tbody>
+              <tr className="row-unaccounted">
+                <td colSpan={2} className="exp-cat">Unaccounted</td>
+                <td className="val amber">{fmt(unaccounted)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className="exp-budget-grid" style={{ marginTop: '12px' }}>
+            <BudgetRow label="Budget" budget={budgets.budget} spent={totalGeneral} />
+            <BudgetRow label="Budget SMT" budget={budgets.budgetSmt} spent={0} />
+          </div>
+        </div>
+
+        {/* ── Settlement Block ────────────────────────────────────────── */}
+        <div className="expense-block">
+          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+            SETTLEMENT
+          </div>
+          {settlementExpenses.length > 0 && (
+            <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '8px' }}>
+              <table className="snap-table">
+                <tbody>
+                  {settlementExpenses.map(renderExpenseRow)}
+                </tbody>
+              </table>
+            </div>
           )}
-
-          {/* ── Expense rows ───────────────────────────────────────────── */}
-          {expenses.filter(e => e.amount > 0 || e.name).map((e, i) => (
-            <tr key={i}>
-              <td className="exp-cat">{e.category}</td>
-              <td>{e.name || <span className="muted">—</span>}</td>
-              <td className="val">{fmt(e.amount)}</td>
-            </tr>
-          ))}
-
-          <tr className="row-unaccounted">
-            <td colSpan={2} className="exp-cat">Unaccounted</td>
-            <td className="val amber">{fmt(unaccounted)}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div className="divider" />
-
-      <div className="exp-budget-grid">
-        <BudgetRow label="Budget"     budget={budgets.budget}    spent={total} />
-        <BudgetRow label="Budget SMT" budget={budgets.budgetSmt} spent={0} />
-        <BudgetRow label="Budget UFS" budget={budgets.budgetUfs} spent={0} />
-        <div className="exp-settlement">
-          <span className="muted">In-Settlement (Flat NCR)</span>
-          <span className="mono">{fmt(budgets.inSettlement)}</span>
+          <div className="exp-budget-grid">
+            <div className="exp-settlement">
+              <span className="muted">In-Settlement (Flat NCR)</span>
+              <span className="mono">{fmt(budgets.inSettlement)}</span>
+            </div>
+            <div className="exp-settlement">
+              <span className="muted">Settled</span>
+              <span className="mono">{fmt(budgets.settled)}</span>
+            </div>
+          </div>
         </div>
-        <div className="exp-settlement">
-          <span className="muted">Settled</span>
-          <span className="mono">{fmt(budgets.settled)}</span>
+
+        {/* ── Unforeseen Block ────────────────────────────────────────── */}
+        <div className="expense-block">
+          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+            UNFORESEEN
+          </div>
+          {unforeseenExpenses.length > 0 && (
+            <div style={{ maxHeight: '55px', overflowY: 'auto', marginBottom: '8px' }}>
+              <table className="snap-table">
+                <tbody>
+                  {unforeseenExpenses.map(renderExpenseRow)}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="exp-budget-grid">
+            <BudgetRow label="Budget UFS (Contingency)" budget={budgetUfs} spent={totalUnforeseen} />
+          </div>
         </div>
+
       </div>
 
-      <div className="section-total">
-        <span>Total Expenses</span>
-        <span className="mono red">{total.toLocaleString('en-IN')}</span>
+      {/* ── Global Total ───────────────────────────────────────────── */}
+      <div className="section-total" style={{ marginTop: 'auto', paddingTop: '16px' }}>
+        <span>Total Expenses (Net)</span>
+        <span className="mono red">{totalExpense.toLocaleString('en-IN')}</span>
       </div>
     </div>
   );
