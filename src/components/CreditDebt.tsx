@@ -1,7 +1,10 @@
 import type { CreditEntry } from '../data/schema';
 import './Sections.css';
 
-interface Props { credits: CreditEntry[] }
+interface Props {
+  credits: CreditEntry[];
+  onSave?: (credits: CreditEntry[]) => void;
+}
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 

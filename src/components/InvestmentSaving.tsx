@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import type { InvestmentItem } from '../data/schema';
+import type { Snapshot } from '../data/schema';
 import './Sections.css';
 import '../components/SummaryBar.css'; // pull in pencil button styles
 
-interface Props { investments: InvestmentItem[] }
+interface Props { 
+  snapshot: Snapshot;
+  onSave?: (updated: Snapshot) => void;
+}
 
-const fmt = (n: number) => n.toLocaleString('en-IN');
+const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function InvestmentSaving({ investments }: Props) {
+export default function InvestmentSaving({ snapshot, onSave }: Props) {
+  const investments = snapshot.investments;
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState<{name: string, actual: string, expected: string}[]>([]);
 
@@ -30,7 +34,7 @@ export default function InvestmentSaving({ investments }: Props) {
         actual: parseFloat(i.actual) || 0,
         expected: i.expected.trim() !== '' ? parseFloat(i.expected) : null
       }));
-    console.log('Investment payload:', payload);
+    if (onSave) onSave({ ...snapshot, investments: payload });
     setEditing(false);
   };
 

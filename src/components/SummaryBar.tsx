@@ -2,13 +2,16 @@ import { useState } from 'react';
 import type { Snapshot, CashFlowEntry } from '../data/schema';
 import './SummaryBar.css';
 
-interface Props { snapshot: Snapshot }
+interface Props {
+  snapshot: Snapshot;
+  onSave?: (updated: Snapshot) => void;
+}
 
 const fmt = (n: number) => n.toLocaleString('en-IN');
 
 const EMPTY_SLOTS = Array.from({ length: 5 }, () => ({ label: '', amount: '' }));
 
-export default function SummaryBar({ snapshot }: Props) {
+export default function SummaryBar({ snapshot, onSave }: Props) {
   const { opening, closing, income, distributions, totalIncome } = snapshot;
 
   // Income inline editor
@@ -24,12 +27,11 @@ export default function SummaryBar({ snapshot }: Props) {
   };
 
   const saveIncome = () => {
-    // TODO: call API with filtered slots when backend is ready
-    // filteredIncome is the data you'll POST
     const _filteredIncome: CashFlowEntry[] = incomeDraft
       .filter(s => s.label.trim() && !isNaN(parseFloat(s.amount)))
       .map(s => ({ label: s.label.trim(), amount: parseFloat(s.amount) }));
-    console.log('Income payload:', _filteredIncome);
+      
+    if (onSave) onSave({ ...snapshot, income: _filteredIncome });
     setEditingIncome(false);
   };
 
@@ -47,12 +49,11 @@ export default function SummaryBar({ snapshot }: Props) {
   };
 
   const saveDist = () => {
-    // API logic later
     const _filteredDist: CashFlowEntry[] = distDraft.map(s => ({
       label: s.label,
       amount: parseFloat(s.amount) || 0
     }));
-    console.log('Dist payload:', _filteredDist);
+    if (onSave) onSave({ ...snapshot, distributions: _filteredDist });
     setEditingDist(false);
   };
 

@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ExpenseItem, ExpenseBudgets } from '../data/schema';
-import { EXPENSE_CATEGORIES, type ExpenseCategory, type NewExpensePayload } from './AddExpenseModal';
+import { EXPENSE_CATEGORIES, type ExpenseCategory } from './AddExpenseModal';
 import './Sections.css';
 
 interface Props {
   expenses: ExpenseItem[];
   budgets: ExpenseBudgets;
   unaccounted: number;
+  onSave?: (expenses: ExpenseItem[]) => void;
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function MajorExpenses({ expenses, budgets, unaccounted }: Props) {
+export default function MajorExpenses({ expenses, budgets, unaccounted, onSave }: Props) {
   const total = expenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
   const [adding, setAdding] = useState(false);
   const [category, setCategory] = useState<ExpenseCategory>('FIXED ESSENTIALS');
@@ -31,12 +32,14 @@ export default function MajorExpenses({ expenses, budgets, unaccounted }: Props)
   const handleSave = () => {
     const amt = parseFloat(amount);
     if (!name.trim() || isNaN(amt) || amt <= 0) return;
-    const payload: NewExpensePayload = {
-      category, name: name.trim(), amount: amt,
-      date: new Date().toISOString().slice(0, 10),
+    const payload: ExpenseItem = {
+      category, name: name.trim(), amount: amt
     };
-    // TODO: replace with your API call when backend is ready
-    console.log('New expense payload:', payload);
+    
+    if (onSave) {
+      onSave([...expenses, payload]);
+    }
+    
     setAdding(false);
   };
 
