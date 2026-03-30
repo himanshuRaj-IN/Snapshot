@@ -26,6 +26,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
   const unaccountedExpenses = expenses.filter(e => e.category === 'UNACCOUNTED' && (e.amount > 0 || e.name));
 
   const totalGeneral = generalExpenses.reduce((s, e) => s + e.amount, 0) + unaccountedExpenses.reduce((s, e) => s + e.amount, 0) + unaccounted;
+  const totalInSettlement = settlementExpenses.filter(e => e.category === 'IN-SETTLEMENT').reduce((s, e) => s + e.amount, 0);
   const totalUnforeseen = unforeseenExpenses.reduce((s, e) => s + e.amount, 0);
 
   // Total out of pocket ignores 'SETTLED'
@@ -139,7 +140,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           </table>
         )}
 
-        {/* ── General Block ───────────────────────────────────────────── */}
+        {/* ── Expenses Block ───────────────────────────────────────────── */}
         <div className="expense-block">
           <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
             EXPENSES
@@ -178,9 +179,6 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
               )}
             </tbody>
           </table>
-          <div className="exp-budget-grid" style={{ marginTop: '12px' }}>
-            <BudgetRow label="Budget" budget={budgets.budget} spent={totalGeneral} />
-          </div>
         </div>
 
         {/* ── Settlement Block ────────────────────────────────────────── */}
@@ -227,9 +225,15 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
               </table>
             </div>
           )}
-          <div className="exp-budget-grid">
-            <BudgetRow label="Budget UFS (Contingency)" budget={budgetUfs} spent={totalUnforeseen} />
-          </div>
+        </div>
+
+        <div className="divider" style={{ margin: '10px 0' }} />
+
+        {/* ── Budget Summary Section ───────────────────────────────────── */}
+        <div className="exp-budget-grid" style={{ paddingBottom: '12px' }}>
+          <BudgetRow label="Budget (General)" budget={budgets.budget} spent={totalGeneral} />
+          <BudgetRow label="Budget Settlement" budget={budgets.budgetSmt} spent={totalInSettlement} />
+          <BudgetRow label="Budget Unforeseen" budget={budgetUfs} spent={totalUnforeseen} />
         </div>
 
       </div>
