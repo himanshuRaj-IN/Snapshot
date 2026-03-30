@@ -140,6 +140,18 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
 .sb-row-dim .sb-row-val   { color: var(--text-muted); }
 .sb-row-red .sb-row-val   { color: var(--red); }
 
+.sb-row-val-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.sb-row-expected {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
 /* Totals */
 .sb-total {
   display: flex;
