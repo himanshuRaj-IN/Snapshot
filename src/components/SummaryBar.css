@@ -308,7 +308,7 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   overflow: hidden;
-  max-width: 80px; /* Base width */
+  max-width: 100px; /* Increased from 80px for better legibility */
 }
 .hc-badge:hover {
   max-width: 500px; /* Expand on hover */
