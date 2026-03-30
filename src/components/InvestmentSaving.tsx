@@ -66,66 +66,68 @@ export default function InvestmentSaving({ snapshot, onSave }: Props) {
         )}
       </div>
 
-      <table className="snap-table">
-        <thead>
-          <tr>
-            <th>Fund</th>
-            <th className="right">Actual</th>
-            <th className="right">Expected</th>
-          </tr>
-        </thead>
-        <tbody>
-          {editing ? drafts.map((inv, i) => {
-            const parsedActual = parseFloat(inv.actual) || 0;
-            const parsedExpected = inv.expected.trim() !== '' ? parseFloat(inv.expected) : null;
-            const below = parsedExpected !== null && parsedActual < parsedExpected;
-            return (
-              <tr key={i} className={below ? 'row-warning' : ''}>
-                <td>
-                  <input
-                    type="text"
-                    className="inc-slot-label"
-                    style={{ width: '100%', boxSizing: 'border-box' }}
-                    placeholder="S-Emg / I-Fund"
-                    value={inv.name}
-                    onChange={e => updateDraft(i, 'name', e.target.value)}
-                  />
-                </td>
-                <td className="right">
-                  <input
-                    type="number"
-                    className="inc-slot-amount mono"
-                    style={{ width: '80px', textAlign: 'right', float: 'right' }}
-                    value={inv.actual}
-                    onChange={e => updateDraft(i, 'actual', e.target.value)}
-                  />
-                </td>
-                <td className="right">
-                  <input
-                    type="number"
-                    className="inc-slot-amount mono"
-                    style={{ width: '80px', textAlign: 'right', float: 'right' }}
-                    placeholder="—"
-                    value={inv.expected}
-                    onChange={e => updateDraft(i, 'expected', e.target.value)}
-                  />
-                </td>
-              </tr>
-            );
-          }) : investments.map((inv, i) => {
-            const below = inv.expected !== null && inv.actual < inv.expected;
-            return (
-              <tr key={i} className={below ? 'row-warning' : ''}>
-                <td>{inv.name}</td>
-                <td className={`val ${below ? 'red' : ''}`}>{fmt(inv.actual)}</td>
-                <td className="val muted">{inv.expected !== null ? fmt(inv.expected) : '—'}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="card-content-scrollable" style={{ flex: 1, overflowY: 'auto', paddingRight: '6px' }}>
+        <table className="snap-table">
+          <thead>
+            <tr>
+              <th>Fund</th>
+              <th className="right">Actual</th>
+              <th className="right">Expected</th>
+            </tr>
+          </thead>
+          <tbody>
+            {editing ? drafts.map((inv, i) => {
+              const parsedActual = parseFloat(inv.actual) || 0;
+              const parsedExpected = inv.expected.trim() !== '' ? parseFloat(inv.expected) : null;
+              const below = parsedExpected !== null && parsedActual < parsedExpected;
+              return (
+                <tr key={i} className={below ? 'row-warning' : ''}>
+                  <td>
+                    <input
+                      type="text"
+                      className="inc-slot-label"
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                      placeholder="S-Emg / I-Fund"
+                      value={inv.name}
+                      onChange={e => updateDraft(i, 'name', e.target.value)}
+                    />
+                  </td>
+                  <td className="right">
+                    <input
+                      type="number"
+                      className="inc-slot-amount mono"
+                      style={{ width: '80px', textAlign: 'right', float: 'right' }}
+                      value={inv.actual}
+                      onChange={e => updateDraft(i, 'actual', e.target.value)}
+                    />
+                  </td>
+                  <td className="right">
+                    <input
+                      type="number"
+                      className="inc-slot-amount mono"
+                      style={{ width: '80px', textAlign: 'right', float: 'right' }}
+                      placeholder="—"
+                      value={inv.expected}
+                      onChange={e => updateDraft(i, 'expected', e.target.value)}
+                    />
+                  </td>
+                </tr>
+              );
+            }) : investments.map((inv, i) => {
+              const below = inv.expected !== null && inv.actual < inv.expected;
+              return (
+                <tr key={i} className={below ? 'row-warning' : ''}>
+                  <td>{inv.name}</td>
+                  <td className={`val ${below ? 'red' : ''}`}>{fmt(inv.actual)}</td>
+                  <td className="val muted">{inv.expected !== null ? fmt(inv.expected) : '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-      <div className="section-total" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}>
+      <div className="section-total" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '8px', paddingTop: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>Total Saving</span>
           <span className="mono" style={{ color: 'var(--accent)' }}>{fmt(totalSaving)}</span>

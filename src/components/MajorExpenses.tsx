@@ -171,7 +171,7 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
         >{adding ? '✕' : '＋'}</button>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="card-content-scrollable" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingRight: '6px' }}>
         
         {/* ── Add Row ───────────────────────────────────────────── */}
         {adding && (
@@ -224,13 +224,11 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
             EXPENSES
           </div>
           {generalExpenses.length > 0 && (
-            <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
-              <table className="snap-table">
-                <tbody>
-                  {generalExpenses.map(renderExpenseRow)}
-                </tbody>
-              </table>
-            </div>
+            <table className="snap-table">
+              <tbody>
+                {generalExpenses.map(renderExpenseRow)}
+              </tbody>
+            </table>
           )}
           
           <table className="snap-table" style={{ borderTop: '1px solid var(--border)', marginTop: '4px' }}>
@@ -258,13 +256,11 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
             SETTLEMENT
           </div>
           {settlementExpenses.length > 0 && (
-            <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '8px' }}>
-              <table className="snap-table">
-                <tbody>
-                  {settlementExpenses.map(renderExpenseRow)}
-                </tbody>
-              </table>
-            </div>
+            <table className="snap-table" style={{ marginBottom: '8px' }}>
+              <tbody>
+                {settlementExpenses.map(renderExpenseRow)}
+              </tbody>
+            </table>
           )}
         </div>
 
@@ -274,13 +270,11 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
             UNFORESEEN
           </div>
           {unforeseenExpenses.length > 0 && (
-            <div style={{ maxHeight: '75px', overflowY: 'auto', marginBottom: '8px' }}>
-              <table className="snap-table">
-                <tbody>
-                  {unforeseenExpenses.map(renderExpenseRow)}
-                </tbody>
-              </table>
-            </div>
+            <table className="snap-table" style={{ marginBottom: '8px' }}>
+              <tbody>
+                {unforeseenExpenses.map(renderExpenseRow)}
+              </tbody>
+            </table>
           )}
         </div>
 

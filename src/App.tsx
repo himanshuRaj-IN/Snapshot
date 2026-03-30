@@ -5,7 +5,6 @@ import SummaryBar from './components/SummaryBar';
 import MajorExpenses from './components/MajorExpenses';
 import InvestmentSaving from './components/InvestmentSaving';
 import CreditDebt from './components/CreditDebt';
-import LiquidCashFooter from './components/LiquidCashFooter';
 import './App.css';
 
 export default function App() {
@@ -229,7 +228,7 @@ export default function App() {
       <main className="app-main">
         <SummaryBar snapshot={snapshot} onSave={handleSaveCore} />
 
-        <div className="grid-bottom">
+        <div className={`grid-bottom ${isLedgerExpanding ? 'grid-expanding' : ''}`}>
           <MajorExpenses
             snapshot={snapshot}
             onSave={handleSaveExpenses}
@@ -238,18 +237,13 @@ export default function App() {
             snapshot={snapshot}
             onSave={handleSaveCore} 
           />
-          <div className={isLedgerExpanding ? 'grid-span-full' : ''}>
-            <CreditDebt 
-              credits={snapshot.credits} 
-              onSave={handleSaveCredits}
-              onEditingChange={setIsLedgerExpanding}
-            />
-          </div>
+          <CreditDebt 
+            credits={snapshot.credits} 
+            onSave={handleSaveCredits}
+            onEditingChange={setIsLedgerExpanding}
+          />
         </div>
       </main>
-
-      {/* ── Footer ───────────────────────────────────────────────────── */}
-      <LiquidCashFooter snapshot={snapshot} />
     </div>
   );
 }
