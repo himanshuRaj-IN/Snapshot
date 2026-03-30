@@ -131,12 +131,12 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
       {/* ── Health Check strip ───────────────────────────────────────────── */}
       <div className="hc-strip">
         <div className="hc-badges">
-          <HealthBadge label="Income" pass={isIncOk} actual={computedTotal} expected={incomeDistributed} icon="💰" />
-          <HealthBadge label="Inv"    pass={isInvOk} actual={closing.investment} expected={expInv} icon="📈" />
-          <HealthBadge label="Sav"    pass={isSavOk} actual={closing.saving} expected={expSav} icon="🏦" />
-          <HealthBadge label="Chk"    pass={isChkOk} actual={closing.checking} expected={expChk} icon="🏧" />
-          <HealthBadge label="Cred"   pass={isCgOk}  actual={closing.creditGiven} expected={expCg} icon="🤝" />
-          <HealthBadge label="Debt"   pass={isDtOk}  actual={closing.debtTaken} expected={expDt} icon="💳" />
+          <HealthBadge label="Cashflow"   pass={isIncOk} actual={computedTotal} expected={incomeDistributed} icon="💰" />
+          <HealthBadge label="Investment" pass={isInvOk} actual={closing.investment} expected={expInv} icon="📈" />
+          <HealthBadge label="Saving"     pass={isSavOk} actual={closing.saving} expected={expSav} icon="🏦" />
+          <HealthBadge label="Checking"   pass={isChkOk} actual={closing.checking} expected={expChk} icon="🏧" />
+          <HealthBadge label="Credit"     pass={isCgOk}  actual={closing.creditGiven} expected={expCg} icon="🤝" />
+          <HealthBadge label="Debt"       pass={isDtOk}  actual={closing.debtTaken} expected={expDt} icon="💳" />
         </div>
       </div>
 
