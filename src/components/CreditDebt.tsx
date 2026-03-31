@@ -88,6 +88,7 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
     if (e.key === 'Escape') isEdit ? setEditingIndex(null) : setAdding(false);
   };
 
+  const totalAmount   = credits.reduce((s, c) => s + c.amount, 0);
   const totalLent     = credits.reduce((s, c) => s + c.lentOrOwe, 0);
   const totalSettled  = credits.reduce((s, c) => s + c.settled, 0);
   const totalBorrowed = credits.reduce((s, c) => s + c.borrowed, 0);
@@ -199,6 +200,10 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
         <div className="divider" />
 
         <div className="credit-summary">
+          <div className="credit-summary-row" style={{ fontStyle: 'italic', marginBottom: '4px' }}>
+            <span className="muted">Total Amount (Settling)</span>
+            <span className="mono">{totalAmount.toLocaleString('en-IN')}</span>
+          </div>
           <div className="credit-summary-row">
             <span className="muted">Total Lent</span>
             <span className="mono green">{totalLent.toLocaleString('en-IN')}</span>
@@ -216,4 +221,5 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
     </div>
   );
 }
+
 
