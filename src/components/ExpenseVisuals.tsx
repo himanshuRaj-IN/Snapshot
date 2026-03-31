@@ -35,6 +35,10 @@ export default function ExpenseVisuals({ snapshot }: Props) {
     .filter(e => generalCats.includes(e.category))
     .reduce((s, e) => s + e.amount, 0) + unaccounted;
   
+  const totalInSettlement = expenses
+    .filter(e => e.category === 'IN-SETTLEMENT')
+    .reduce((s, e) => s + e.amount, 0);
+
   const totalUnforeseen = expenses
     .filter(e => unforeseenCats.includes(e.category))
     .reduce((s, e) => s + e.amount, 0);
@@ -100,6 +104,7 @@ export default function ExpenseVisuals({ snapshot }: Props) {
         <div className="ev-section-title">Budget Status</div>
         <div className="ev-rings-grid">
           <BudgetRing label="General" spent={totalGeneral} limit={budgets.budget} color="var(--accent)" />
+          <BudgetRing label="Settlement" spent={totalInSettlement} limit={budgets.budgetSmt} color="var(--blue)" />
           <BudgetRing label="Unforeseen" spent={totalUnforeseen} limit={budgetUfs} color="var(--red)" />
         </div>
       </div>
