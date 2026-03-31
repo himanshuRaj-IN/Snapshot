@@ -64,4 +64,5 @@ export interface Snapshot {
   expenseUnaccounted: number;
   investments: InvestmentItem[];
   credits: CreditEntry[];
+  isFreezed?: boolean;
 }

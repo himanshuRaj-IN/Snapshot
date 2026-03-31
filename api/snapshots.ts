@@ -92,7 +92,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ].reduce((a, b) => a + b, 0),
         expenseUnaccounted: Number(db.unaccounted),
         expenses: [],
-        credits: []
+        credits: [],
+        isFreezed: !!db.is_freezed
       };
       
       return res.status(200).json(snapshot);
@@ -141,7 +142,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           budget, budget_smt, budget_ufs, in_settlement, settled, unaccounted,
           income_1_label, income_1_amount, income_2_label, income_2_amount, income_3_label, income_3_amount, income_4_label, income_4_amount, income_5_label, income_5_amount,
           inv_1_name, inv_1_actual, inv_1_expected, inv_2_name, inv_2_actual, inv_2_expected, inv_3_name, inv_3_actual, inv_3_expected, inv_4_name, inv_4_actual, inv_4_expected, inv_5_name, inv_5_actual, inv_5_expected,
-          inv_6_name, inv_6_actual, inv_6_expected, inv_7_name, inv_7_actual, inv_7_expected, inv_8_name, inv_8_actual, inv_8_expected, inv_9_name, inv_9_actual, inv_9_expected, inv_10_name, inv_10_actual, inv_10_expected
+          inv_6_name, inv_6_actual, inv_6_expected, inv_7_name, inv_7_actual, inv_7_expected, inv_8_name, inv_8_actual, inv_8_expected, inv_9_name, inv_9_actual, inv_9_expected, inv_10_name, inv_10_actual, inv_10_expected,
+          is_freezed
         ) VALUES (
           ${qMonth}, ${qYear},
           ${op.investment}, ${op.saving}, ${op.checking}, ${op.creditGiven}, ${op.debtTaken},
@@ -150,7 +152,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${bd.budget}, ${bd.budgetSmt}, ${bd.budgetUfs}, ${bd.inSettlement}, ${bd.settled}, ${data.expenseUnaccounted},
           ${incLabel[0]}, ${incAmt[0]}, ${incLabel[1]}, ${incAmt[1]}, ${incLabel[2]}, ${incAmt[2]}, ${incLabel[3]}, ${incAmt[3]}, ${incLabel[4]}, ${incAmt[4]},
           ${invName[0]}, ${invAct[0]}, ${invExp[0]}, ${invName[1]}, ${invAct[1]}, ${invExp[1]}, ${invName[2]}, ${invAct[2]}, ${invExp[2]}, ${invName[3]}, ${invAct[3]}, ${invExp[3]}, ${invName[4]}, ${invAct[4]}, ${invExp[4]},
-          ${invName[5]}, ${invAct[5]}, ${invExp[5]}, ${invName[6]}, ${invAct[6]}, ${invExp[6]}, ${invName[7]}, ${invAct[7]}, ${invExp[7]}, ${invName[8]}, ${invAct[8]}, ${invExp[8]}, ${invName[9]}, ${invAct[9]}, ${invExp[9]}
+          ${invName[5]}, ${invAct[5]}, ${invExp[5]}, ${invName[6]}, ${invAct[6]}, ${invExp[6]}, ${invName[7]}, ${invAct[7]}, ${invExp[7]}, ${invName[8]}, ${invAct[8]}, ${invExp[8]}, ${invName[9]}, ${invAct[9]}, ${invExp[9]},
+          ${data.isFreezed || false}
         )
         ON CONFLICT (month, year) DO UPDATE SET
           op_investment=EXCLUDED.op_investment, op_saving=EXCLUDED.op_saving, op_checking=EXCLUDED.op_checking, op_credit_given=EXCLUDED.op_credit_given, op_debt_taken=EXCLUDED.op_debt_taken,
@@ -160,6 +163,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           income_1_label=EXCLUDED.income_1_label, income_1_amount=EXCLUDED.income_1_amount, income_2_label=EXCLUDED.income_2_label, income_2_amount=EXCLUDED.income_2_amount, income_3_label=EXCLUDED.income_3_label, income_3_amount=EXCLUDED.income_3_amount, income_4_label=EXCLUDED.income_4_label, income_4_amount=EXCLUDED.income_4_amount, income_5_label=EXCLUDED.income_5_label, income_5_amount=EXCLUDED.income_5_amount,
           inv_1_name=EXCLUDED.inv_1_name, inv_1_actual=EXCLUDED.inv_1_actual, inv_1_expected=EXCLUDED.inv_1_expected, inv_2_name=EXCLUDED.inv_2_name, inv_2_actual=EXCLUDED.inv_2_actual, inv_2_expected=EXCLUDED.inv_2_expected, inv_3_name=EXCLUDED.inv_3_name, inv_3_actual=EXCLUDED.inv_3_actual, inv_3_expected=EXCLUDED.inv_3_expected, inv_4_name=EXCLUDED.inv_4_name, inv_4_actual=EXCLUDED.inv_4_actual, inv_4_expected=EXCLUDED.inv_4_expected, inv_5_name=EXCLUDED.inv_5_name, inv_5_actual=EXCLUDED.inv_5_actual, inv_5_expected=EXCLUDED.inv_5_expected,
           inv_6_name=EXCLUDED.inv_6_name, inv_6_actual=EXCLUDED.inv_6_actual, inv_6_expected=EXCLUDED.inv_6_expected, inv_7_name=EXCLUDED.inv_7_name, inv_7_actual=EXCLUDED.inv_7_actual, inv_7_expected=EXCLUDED.inv_7_expected, inv_8_name=EXCLUDED.inv_8_name, inv_8_actual=EXCLUDED.inv_8_actual, inv_8_expected=EXCLUDED.inv_8_expected, inv_9_name=EXCLUDED.inv_9_name, inv_9_actual=EXCLUDED.inv_9_actual, inv_9_expected=EXCLUDED.inv_9_expected, inv_10_name=EXCLUDED.inv_10_name, inv_10_actual=EXCLUDED.inv_10_actual, inv_10_expected=EXCLUDED.inv_10_expected,
+          is_freezed = snapshots.is_freezed OR EXCLUDED.is_freezed,
           updated_at=now();
       `;
       

@@ -5,13 +5,14 @@ import './SummaryBar.css';
 interface Props {
   snapshot: Snapshot;
   onSave?: (updated: Snapshot) => void;
+  readOnly?: boolean;
 }
 
 const fmt = (n: number) => n.toLocaleString('en-IN');
 
 const EMPTY_SLOTS = Array.from({ length: 5 }, () => ({ label: '', amount: '' }));
 
-export default function SummaryBar({ snapshot, onSave }: Props) {
+export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
   const { opening, closing, income, distributions, totalIncome } = snapshot;
 
   // Income inline editor
@@ -165,7 +166,7 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
             <div className="sb-flow-col">
               <div className="sb-panel-label">
                 Income
-                {!editingIncome && (
+                {!editingIncome && !readOnly && (
                   <button className="inc-edit-btn" onClick={openIncomeEditor} title="Edit income">✏</button>
                 )}
                 {editingIncome && (
@@ -217,7 +218,7 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
             <div className="sb-flow-col">
               <div className="sb-panel-label">
                 Distribution
-                {!editingDist && (
+                {!editingDist && !readOnly && (
                   <button className="inc-edit-btn" onClick={openDistEditor} title="Edit distribution">✏</button>
                 )}
                 {editingDist && (
@@ -286,7 +287,7 @@ export default function SummaryBar({ snapshot, onSave }: Props) {
         <div className="sb-panel">
           <div className="sb-panel-label">
             Closing
-            {!editingClosing && (
+            {!editingClosing && !readOnly && (
               <button className="inc-edit-btn" onClick={openClosingEditor} title="Edit closing">✏</button>
             )}
             {editingClosing && (

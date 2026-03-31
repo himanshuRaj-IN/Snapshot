@@ -6,11 +6,12 @@ import '../components/SummaryBar.css'; // pull in pencil button styles
 interface Props { 
   snapshot: Snapshot;
   onSave?: (updated: Snapshot) => void;
+  readOnly?: boolean;
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function InvestmentSaving({ snapshot, onSave }: Props) {
+export default function InvestmentSaving({ snapshot, onSave, readOnly }: Props) {
   const investments = snapshot.investments;
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState<{name: string, actual: string, expected: string}[]>([]);
@@ -56,14 +57,14 @@ export default function InvestmentSaving({ snapshot, onSave }: Props) {
       <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span className="card-title-icon" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>↑</span>
         <span style={{ flex: 1 }}>Investment / Saving</span>
-        {!editing ? (
+        {!editing && !readOnly ? (
           <button className="inc-edit-btn" onClick={startEdit} title="Edit investment">✏</button>
-        ) : (
+        ) : !readOnly ? (
           <>
             <button className="inc-save-btn" onClick={save} title="Save">✓</button>
             <button className="inc-cancel-btn" onClick={() => setEditing(false)} title="Cancel">✕</button>
           </>
-        )}
+        ) : null}
       </div>
 
       <div className="card-content-scrollable" style={{ flex: 1, overflowY: 'auto', paddingRight: '6px' }}>

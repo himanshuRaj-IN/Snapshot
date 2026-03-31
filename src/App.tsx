@@ -112,6 +112,15 @@ export default function App() {
     await saveLedger(snapshot.month, credits);
   };
 
+  const handleFreeze = async () => {
+    if (!snapshot) return;
+    if (!window.confirm('❄️ Freeze Snapshot?\n\nThis will make everything read-only. This action cannot be undone from the UI.')) return;
+    
+    const updated = { ...snapshot, isFreezed: true };
+    setSnapshot(updated);
+    await saveCoreSnapshot(updated);
+  };
+
   if (loading) {
     return (
       <div className="app-loading">
@@ -137,6 +146,12 @@ export default function App() {
           {/* Title (Center) */}
           <div className="app-header-center">
             <span className="app-active-month-label">{snapshot.month.replace('_', ' ')} Snapshot</span>
+            {snapshot.isFreezed && (
+              <span className="app-frozen-badge">
+                <span style={{ fontSize: '0.8rem' }}>❄️</span> 
+                Frozen
+              </span>
+            )}
           </div>
           
           {/* Controls (Right) */}
@@ -164,6 +179,17 @@ export default function App() {
             >
               ➕
             </button>
+
+            {!snapshot.isFreezed && (
+              <button 
+                className="app-header-btn"
+                onClick={handleFreeze}
+                title="Freeze Snapshot"
+                style={{ color: 'var(--blue)', borderColor: 'var(--blue-soft)' }}
+              >
+                ❄️
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -228,21 +254,24 @@ export default function App() {
 
       {/* ── Main ─────────────────────────────────────────────────────── */}
       <main className="app-main">
-        <SummaryBar snapshot={snapshot} onSave={handleSaveCore} />
+        <SummaryBar snapshot={snapshot} onSave={handleSaveCore} readOnly={snapshot.isFreezed} />
 
         <div className={`grid-bottom ${isLedgerExpanding ? 'grid-expanding' : ''}`}>
           <MajorExpenses
             snapshot={snapshot}
             onSave={handleSaveExpenses}
+            readOnly={snapshot.isFreezed}
           />
           <InvestmentSaving 
             snapshot={snapshot}
             onSave={handleSaveCore} 
+            readOnly={snapshot.isFreezed}
           />
           <CreditDebt 
             credits={snapshot.credits} 
             onSave={handleSaveCredits}
             onEditingChange={setIsLedgerExpanding}
+            readOnly={snapshot.isFreezed}
           />
         </div>
       </main>

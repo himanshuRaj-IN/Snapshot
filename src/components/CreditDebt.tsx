@@ -6,11 +6,12 @@ interface Props {
   credits: CreditEntry[];
   onSave?: (credits: CreditEntry[]) => void;
   onEditingChange?: (isEditing: boolean) => void;
+  readOnly?: boolean;
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function CreditDebt({ credits, onSave, onEditingChange }: Props) {
+export default function CreditDebt({ credits, onSave, onEditingChange, readOnly }: Props) {
   const [adding, setAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
@@ -96,11 +97,13 @@ export default function CreditDebt({ credits, onSave, onEditingChange }: Props) 
       <div className="card-title">
         <span className="card-title-icon" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}>⇄</span>
         Credit &amp; Debt
-        <button
-          className="card-add-btn"
-          onClick={() => setAdding(v => !v)}
-          title={adding ? 'Cancel' : 'Add person'}
-        >{adding ? '✕' : '＋'}</button>
+        {!readOnly && (
+          <button
+            className="card-add-btn"
+            onClick={() => setAdding(v => !v)}
+            title={adding ? 'Cancel' : 'Add person'}
+          >{adding ? '✕' : '＋'}</button>
+        )}
       </div>
 
       <div className="card-content-scrollable" style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
@@ -163,8 +166,12 @@ export default function CreditDebt({ credits, onSave, onEditingChange }: Props) 
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                         <span className="mono">{fmt(c.borrowed)}</span>
                         <div className="row-actions">
-                          <button className="icon-btn" title="Edit" onClick={() => handleStartEdit(c, i)}>✎</button>
-                          <button className="icon-btn icon-btn-delete" title="Delete" onClick={() => handleDelete(i)}>✕</button>
+                          {!readOnly && (
+                            <>
+                              <button className="icon-btn" title="Edit" onClick={() => handleStartEdit(c, i)}>✎</button>
+                              <button className="icon-btn icon-btn-delete" title="Delete" onClick={() => handleDelete(i)}>✕</button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </td>

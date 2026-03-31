@@ -65,6 +65,7 @@ async function initDB() {
         in_settlement    NUMERIC(12,2) NOT NULL DEFAULT 0,
         settled          NUMERIC(12,2) NOT NULL DEFAULT 0,
         unaccounted      NUMERIC(12,2) NOT NULL DEFAULT 0,
+        is_freezed       BOOLEAN DEFAULT FALSE,
 
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

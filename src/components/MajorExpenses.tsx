@@ -6,11 +6,12 @@ import './Sections.css';
 interface Props {
   snapshot: Snapshot;
   onSave?: (expenses: ExpenseItem[]) => void;
+  readOnly?: boolean;
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('en-IN') : '—';
 
-export default function MajorExpenses({ snapshot, onSave }: Props) {
+export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
   const expenses = snapshot.expenses || [];
   const budgets = snapshot.expenseBudgets;
   const unaccounted = snapshot.expenseUnaccounted;
@@ -148,8 +149,12 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
             <span className="mono">{fmt(e.amount)}</span>
             <div className="row-actions">
-              <button className="icon-btn" onClick={() => handleStartEdit(e)} title="Edit">✎</button>
-              <button className="icon-btn" onClick={() => handleDelete(e.originalIndex)} title="Delete">✕</button>
+              {!readOnly && (
+                <>
+                  <button className="icon-btn" onClick={() => handleStartEdit(e)} title="Edit">✎</button>
+                  <button className="icon-btn" onClick={() => handleDelete(e.originalIndex)} title="Delete">✕</button>
+                </>
+              )}
             </div>
           </div>
         </td>
@@ -162,13 +167,15 @@ export default function MajorExpenses({ snapshot, onSave }: Props) {
       <div className="card-title">
         <span className="card-title-icon" style={{ background: 'var(--red-soft)', color: 'var(--red)' }}>↓</span>
         Major Expenses
-        <button
-          className="card-add-btn"
-          onClick={() => setAdding(v => !v)}
-          aria-label="Add expense"
-          title={adding ? 'Cancel' : 'Add expense'}
-          style={adding ? { color: 'var(--red)', borderColor: 'var(--red)' } : undefined}
-        >{adding ? '✕' : '＋'}</button>
+        {!readOnly && (
+          <button
+            className="card-add-btn"
+            onClick={() => setAdding(v => !v)}
+            aria-label="Add expense"
+            title={adding ? 'Cancel' : 'Add expense'}
+            style={adding ? { color: 'var(--red)', borderColor: 'var(--red)' } : undefined}
+          >{adding ? '✕' : '＋'}</button>
+        )}
       </div>
 
       <div className="card-content-scrollable" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingRight: '6px' }}>
