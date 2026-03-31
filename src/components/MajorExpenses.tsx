@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ExpenseItem, Snapshot } from '../data/schema';
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from './AddExpenseModal';
+import ExpenseVisuals from './ExpenseVisuals';
 import './Sections.css';
 
 interface Props {
@@ -18,6 +19,7 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
 
   const [adding, setAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [showVisuals, setShowVisuals] = useState(false);
   
   // Form states (Add/Edit)
   const [category, setCategory] = useState<ExpenseCategory>('FIXED ESSENTIALS');
@@ -167,6 +169,13 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
       <div className="card-title">
         <span className="card-title-icon" style={{ background: 'var(--red-soft)', color: 'var(--red)' }}>↓</span>
         Major Expenses
+        <button
+          className="card-add-btn"
+          onClick={() => setShowVisuals(v => !v)}
+          title={showVisuals ? 'Show List' : 'Show Charts'}
+          style={{ marginRight: '8px', color: showVisuals ? 'var(--accent)' : 'var(--text-muted)' }}
+        >{showVisuals ? '📋' : '📊'}</button>
+
         {!readOnly && (
           <button
             className="card-add-btn"
@@ -180,120 +189,125 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
 
       <div className="card-content-scrollable" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingRight: '6px' }}>
         
-        {/* ── Add Row ───────────────────────────────────────────── */}
-        {adding && (
-          <table className="snap-table" style={{ marginBottom: 0 }}>
-            <tbody>
-              <tr className="inline-add-row" style={{ display: 'flex' }}>
-                <td style={{ width: '30%', paddingRight: '8px' }}>
-                  <select
-                    className="inline-select"
-                    value={category}
-                    onChange={e => setCategory(e.target.value as ExpenseCategory)}
-                    onKeyDown={ev => handleKeyDown(ev, false)}
-                  >
-                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </td>
-                <td style={{ width: '40%', paddingRight: '8px' }}>
-                  <input
-                    ref={nameRef}
-                    className="inline-input"
-                    type="text"
-                    placeholder="Description…"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    onKeyDown={ev => handleKeyDown(ev, false)}
-                  />
-                </td>
-                <td style={{ width: '30%' }}>
-                  <div className="inline-amount-cell">
-                    <input
-                      className="inline-input inline-input-amount mono"
-                      type="number"
-                      min="1"
-                      placeholder="0"
-                      value={amount}
-                      onChange={e => setAmount(e.target.value)}
-                      onKeyDown={ev => handleKeyDown(ev, false)}
-                    />
-                    <button className="inline-save-btn" onClick={handleSaveAdd} title="Save (Enter)">✓</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        )}
+        {showVisuals ? (
+          <ExpenseVisuals snapshot={snapshot} />
+        ) : (
+          <>
+            {/* ── Add Row ───────────────────────────────────────────── */}
+            {adding && (
+              <table className="snap-table" style={{ marginBottom: 0 }}>
+                <tbody>
+                  <tr className="inline-add-row" style={{ display: 'flex' }}>
+                    <td style={{ width: '30%', paddingRight: '8px' }}>
+                      <select
+                        className="inline-select"
+                        value={category}
+                        onChange={e => setCategory(e.target.value as ExpenseCategory)}
+                        onKeyDown={ev => handleKeyDown(ev, false)}
+                      >
+                        {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </td>
+                    <td style={{ width: '40%', paddingRight: '8px' }}>
+                      <input
+                        ref={nameRef}
+                        className="inline-input"
+                        type="text"
+                        placeholder="Description…"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        onKeyDown={ev => handleKeyDown(ev, false)}
+                      />
+                    </td>
+                    <td style={{ width: '30%' }}>
+                      <div className="inline-amount-cell">
+                        <input
+                          className="inline-input inline-input-amount mono"
+                          type="number"
+                          min="1"
+                          placeholder="0"
+                          value={amount}
+                          onChange={e => setAmount(e.target.value)}
+                          onKeyDown={ev => handleKeyDown(ev, false)}
+                        />
+                        <button className="inline-save-btn" onClick={handleSaveAdd} title="Save (Enter)">✓</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
 
-        {/* ── Expenses Block ───────────────────────────────────────────── */}
-        <div className="expense-block">
-          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-            EXPENSES
-          </div>
-          {generalExpenses.length > 0 && (
-            <table className="snap-table">
-              <tbody>
-                {generalExpenses.map(renderExpenseRow)}
-              </tbody>
-            </table>
-          )}
-          
-          <table className="snap-table" style={{ borderTop: '1px solid var(--border)', marginTop: '4px' }}>
-            <tbody>
-              {unaccountedExpenses.map((e, i) => (
-                <tr key={`unacc-${i}`} className="row-unaccounted">
-                  <td className="exp-cat amber">{e.category}</td>
-                  <td className="amber">{e.name || <span className="muted">—</span>}</td>
-                  <td className="val amber mono">{fmt(e.amount)}</td>
-                </tr>
-              ))}
-              {(unaccounted > 0 || unaccounted < 0) && (
-                <tr className="row-unaccounted">
-                  <td colSpan={2} className="exp-cat amber">Unaccounted (Gap)</td>
-                  <td className="val amber mono">{fmt(unaccounted)}</td>
-                </tr>
+            {/* ── Expenses Block ───────────────────────────────────────────── */}
+            <div className="expense-block">
+              <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+                EXPENSES
+              </div>
+              {generalExpenses.length > 0 && (
+                <table className="snap-table">
+                  <tbody>
+                    {generalExpenses.map(renderExpenseRow)}
+                  </tbody>
+                </table>
               )}
-            </tbody>
-          </table>
-        </div>
+              
+              <table className="snap-table" style={{ borderTop: '1px solid var(--border)', marginTop: '4px' }}>
+                <tbody>
+                  {unaccountedExpenses.map((e, i) => (
+                    <tr key={`unacc-${i}`} className="row-unaccounted">
+                      <td className="exp-cat amber">{e.category}</td>
+                      <td className="amber">{e.name || <span className="muted">—</span>}</td>
+                      <td className="val amber mono">{fmt(e.amount)}</td>
+                    </tr>
+                  ))}
+                  {(unaccounted > 0 || unaccounted < 0) && (
+                    <tr className="row-unaccounted">
+                      <td colSpan={2} className="exp-cat amber">Unaccounted (Gap)</td>
+                      <td className="val amber mono">{fmt(unaccounted)}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        {/* ── Settlement Block ────────────────────────────────────────── */}
-        <div className="expense-block">
-          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-            SETTLEMENT
-          </div>
-          {settlementExpenses.length > 0 && (
-            <table className="snap-table" style={{ marginBottom: '8px' }}>
-              <tbody>
-                {settlementExpenses.map(renderExpenseRow)}
-              </tbody>
-            </table>
-          )}
-        </div>
+            {/* ── Settlement Block ────────────────────────────────────────── */}
+            <div className="expense-block">
+              <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+                SETTLEMENT
+              </div>
+              {settlementExpenses.length > 0 && (
+                <table className="snap-table" style={{ marginBottom: '8px' }}>
+                  <tbody>
+                    {settlementExpenses.map(renderExpenseRow)}
+                  </tbody>
+                </table>
+              )}
+            </div>
 
-        {/* ── Unforeseen Block ────────────────────────────────────────── */}
-        <div className="expense-block">
-          <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-            UNFORESEEN
-          </div>
-          {unforeseenExpenses.length > 0 && (
-            <table className="snap-table" style={{ marginBottom: '8px' }}>
-              <tbody>
-                {unforeseenExpenses.map(renderExpenseRow)}
-              </tbody>
-            </table>
-          )}
-        </div>
+            {/* ── Unforeseen Block ────────────────────────────────────────── */}
+            <div className="expense-block">
+              <div className="expense-block-header muted" style={{ fontSize: '0.75rem', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+                UNFORESEEN
+              </div>
+              {unforeseenExpenses.length > 0 && (
+                <table className="snap-table" style={{ marginBottom: '8px' }}>
+                  <tbody>
+                    {unforeseenExpenses.map(renderExpenseRow)}
+                  </tbody>
+                </table>
+              )}
+            </div>
 
-        <div className="divider" style={{ margin: '10px 0' }} />
+            <div className="divider" style={{ margin: '10px 0' }} />
 
-        {/* ── Budget Summary Section ───────────────────────────────────── */}
-        <div className="exp-budget-grid" style={{ paddingBottom: '12px' }}>
-          <BudgetRow label="Budget (General)" budget={budgets.budget} spent={totalGeneral} />
-          <BudgetRow label="Budget Settlement" budget={budgets.budgetSmt} spent={totalInSettlement} />
-          <BudgetRow label="Budget Unforeseen" budget={budgetUfs} spent={totalUnforeseen} />
-        </div>
-
+            {/* ── Budget Summary Section ───────────────────────────────────── */}
+            <div className="exp-budget-grid" style={{ paddingBottom: '12px' }}>
+              <BudgetRow label="Budget (General)" budget={budgets.budget} spent={totalGeneral} />
+              <BudgetRow label="Budget Settlement" budget={budgets.budgetSmt} spent={totalInSettlement} />
+              <BudgetRow label="Budget Unforeseen" budget={budgetUfs} spent={totalUnforeseen} />
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Global Total ───────────────────────────────────────────── */}

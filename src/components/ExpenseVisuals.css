@@ -1,0 +1,138 @@
+.expense-visuals {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ev-charts-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Donut Chart Container */
+.ev-donut-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ev-donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.ev-donut-total-val {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ev-donut-total-lbl {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Budget Progress Rows */
+.ev-budgets-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ev-budget-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ev-budget-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.ev-budget-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ev-budget-values {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.ev-budget-values .red {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.ev-progress-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ev-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s cubic-bezier(0.65, 0, 0.35, 1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.ev-progress-over {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(239, 68, 68, 0.2),
+    rgba(239, 68, 68, 0.2) 10px,
+    rgba(239, 68, 68, 0.4) 10px,
+    rgba(239, 68, 68, 0.4) 20px
+  );
+  animation: slideStripes 1s linear infinite;
+}
+
+@keyframes slideStripes {
+  from { background-position: 0 0; }
+  to { background-position: 28px 0; }
+}
+
+@media (min-width: 600px) {
+  .ev-charts-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  .ev-donut-container {
+    width: 260px;
+    height: 260px;
+    flex-shrink: 0;
+  }
+  .ev-budgets-col {
+    flex: 1;
+  }
+}
