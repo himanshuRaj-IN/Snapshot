@@ -201,22 +201,23 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
 
         <div className="credit-summary">
           <div className="credit-summary-row" style={{ fontStyle: 'italic', marginBottom: '4px' }}>
-            <span className="muted">Total Amount (Settling)</span>
+            <span className="muted">Total Lent/Owe - This Month</span>
             <span className="mono">{totalAmount.toLocaleString('en-IN')}</span>
           </div>
           <div className="credit-summary-row">
-            <span className="muted">Total Lent</span>
+            <span className="muted">Total Lent/Owe - Last Month</span>
             <span className="mono green">{totalLent.toLocaleString('en-IN')}</span>
           </div>
           <div className="credit-summary-row">
-            <span className="muted">Total Settled</span>
+            <span className="muted">Total Settled - This Month</span>
             <span className="mono">{totalSettled.toLocaleString('en-IN')}</span>
           </div>
           <div className="credit-summary-row">
-            <span className="muted">Total Borrowed</span>
+            <span className="muted">Total Borrowed - This Month</span>
             <span className="mono red">{totalBorrowed.toLocaleString('en-IN')}</span>
           </div>
         </div>
+
       </div>
     </div>
   );
