@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Snapshot, CashFlowEntry } from '../data/schema';
+import { getHealthStatus } from '../data/healthUtils';
 import './SummaryBar.css';
 
 interface Props {
@@ -107,37 +108,20 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
     setClosingDraft(prev => ({ ...prev, [field]: val }));
   };
 
-  // Formula helper
-  const dist = (lbl: string) => distributions.find(d => d.label === lbl)?.amount || 0;
-
-  // Expected calculations
-  const expInv = opening.investment + dist('Investment');
-  const expSav = opening.saving     + dist('Saving') + dist('Credit Repaid') - dist('Credit Given');
-  const expChk = opening.checking   + dist('Checking') - dist('For Expense');
-  const expCg  = opening.creditGiven + dist('Credit Given') - dist('Credit Repaid');
-  const expDt  = opening.debtTaken   + dist('Debt Taken')   - dist('Debt Repaid');
-
-  // Health Checks
-  const isInvOk = Math.abs(closing.investment - expInv) < 1;
-  const isSavOk = Math.abs(closing.saving - expSav) < 1;
-  const isChkOk = Math.abs(closing.checking - expChk) < 1;
-  const isCgOk  = Math.abs(closing.creditGiven - expCg) < 1;
-  const isDtOk  = Math.abs(closing.debtTaken - expDt) < 1;
-
-  const incomeDistributed = dist('Investment') + dist('Saving') + dist('Checking');
-  const isIncOk = Math.abs(computedTotal - incomeDistributed) < 1;
+  // Health Status
+  const health = getHealthStatus(snapshot, computedTotal);
 
   return (
     <section className="summary-section">
       {/* ── Health Check strip ───────────────────────────────────────────── */}
       <div className="hc-strip">
         <div className="hc-badges">
-          <HealthBadge label="Cashflow"   pass={isIncOk} actual={computedTotal} expected={incomeDistributed} icon="💰" />
-          <HealthBadge label="Investment" pass={isInvOk} actual={closing.investment} expected={expInv} icon="📈" />
-          <HealthBadge label="Saving"     pass={isSavOk} actual={closing.saving} expected={expSav} icon="🏦" />
-          <HealthBadge label="Checking"   pass={isChkOk} actual={closing.checking} expected={expChk} icon="🏧" />
-          <HealthBadge label="Credit"     pass={isCgOk}  actual={closing.creditGiven} expected={expCg} icon="🤝" />
-          <HealthBadge label="Debt"       pass={isDtOk}  actual={closing.debtTaken} expected={expDt} icon="💳" />
+          <HealthBadge label="Cashflow"   pass={health.isIncOk} actual={computedTotal}            expected={health.incomeDistributed} icon="💰" />
+          <HealthBadge label="Investment" pass={health.isInvOk} actual={closing.investment}       expected={health.expInv} icon="📈" />
+          <HealthBadge label="Saving"     pass={health.isSavOk} actual={closing.saving}           expected={health.expSav} icon="🏦" />
+          <HealthBadge label="Checking"   pass={health.isChkOk} actual={closing.checking}         expected={health.expChk} icon="🏧" />
+          <HealthBadge label="Credit"     pass={health.isCgOk}  actual={closing.creditGiven}       expected={health.expCg} icon="🤝" />
+          <HealthBadge label="Debt"       pass={health.isDtOk}  actual={closing.debtTaken}         expected={health.expDt} icon="💳" />
         </div>
       </div>
 
@@ -301,19 +285,19 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
           <div className="sb-panel-grid">
             {editingClosing ? (
               <div className="inc-edit-slots">
-                <ClosingInput label="Investment" value={closingDraft.investment} onChange={val => updateClosingDraft('investment', val)} expected={expInv} />
-                <ClosingInput label="Saving"     value={closingDraft.saving}     onChange={val => updateClosingDraft('saving', val)}     expected={expSav} />
-                <ClosingInput label="Checking"   value={closingDraft.checking}   onChange={val => updateClosingDraft('checking', val)}   expected={expChk} />
-                <ClosingInput label="Credit Given" value={closingDraft.creditGiven} onChange={val => updateClosingDraft('creditGiven', val)} expected={expCg} />
-                <ClosingInput label="Debt Taken"  value={closingDraft.debtTaken}  onChange={val => updateClosingDraft('debtTaken', val)}  expected={expDt} />
+                <ClosingInput label="Investment" value={closingDraft.investment} onChange={val => updateClosingDraft('investment', val)} expected={health.expInv} />
+                <ClosingInput label="Saving"     value={closingDraft.saving}     onChange={val => updateClosingDraft('saving', val)}     expected={health.expSav} />
+                <ClosingInput label="Checking"   value={closingDraft.checking}   onChange={val => updateClosingDraft('checking', val)}   expected={health.expChk} />
+                <ClosingInput label="Credit Given" value={closingDraft.creditGiven} onChange={val => updateClosingDraft('creditGiven', val)} expected={health.expCg} />
+                <ClosingInput label="Debt Taken"  value={closingDraft.debtTaken}  onChange={val => updateClosingDraft('debtTaken', val)}  expected={health.expDt} />
               </div>
             ) : (
               <>
-                <SbRow label="Investment"  value={closing.investment} expected={expInv} accent />
-                <SbRow label="Saving"      value={closing.saving}     expected={expSav} />
-                <SbRow label="Checking"    value={closing.checking}   expected={expChk} />
-                <SbRow label="Credit Given" value={closing.creditGiven} expected={expCg} dim />
-                <SbRow label="Debt Taken"  value={closing.debtTaken}  expected={expDt} red />
+                <SbRow label="Investment"  value={closing.investment} expected={health.expInv} accent />
+                <SbRow label="Saving"      value={closing.saving}     expected={health.expSav} />
+                <SbRow label="Checking"    value={closing.checking}   expected={health.expChk} />
+                <SbRow label="Credit Given" value={closing.creditGiven} expected={health.expCg} dim />
+                <SbRow label="Debt Taken"  value={closing.debtTaken}  expected={health.expDt} red />
               </>
             )}
           </div>

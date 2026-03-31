@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Snapshot, ExpenseItem, CreditEntry } from './data/schema';
 import { getSnapshot, listSnapshotMonths, saveCoreSnapshot, saveTransactions, saveLedger, createNewSnapshot } from './services/dataService';
+import { getHealthStatus } from './data/healthUtils';
 import SummaryBar from './components/SummaryBar';
 import MajorExpenses from './components/MajorExpenses';
 import InvestmentSaving from './components/InvestmentSaving';
@@ -114,7 +115,15 @@ export default function App() {
 
   const handleFreeze = async () => {
     if (!snapshot) return;
-    if (!window.confirm('❄️ Freeze Snapshot?\n\nThis will make everything read-only. This action cannot be undone from the UI.')) return;
+
+    const health = getHealthStatus(snapshot);
+    let msg = '❄️ Freeze Snapshot?\n\nThis will make everything read-only. This action cannot be undone from the UI.';
+    
+    if (!health.allPassed) {
+      msg = `⚠️ HEALTH WARNING: The following checks are failing:\n\n• ${health.failures.join('\n• ')}\n\nAre you EXTREMELY sure you want to freeze this snapshot in its current state?`;
+    }
+
+    if (!window.confirm(msg)) return;
     
     const updated = { ...snapshot, isFreezed: true };
     setSnapshot(updated);
