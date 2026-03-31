@@ -123,7 +123,10 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
               {adding && (
                 <tr className="inline-add-row c-debt-form">
                   <td><input ref={entityRef} className="inline-input" placeholder="Name…" value={entity} onChange={e => setEntity(e.target.value)} onKeyDown={ev => handleKeyDown(ev, false)} /></td>
-                  <td><input className="inline-input mono" type="number" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={ev => handleKeyDown(ev, false)} /></td>
+                  <td>
+                    <input className="inline-input mono" type="number" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={ev => handleKeyDown(ev, false)} />
+                    <span className="field-hint">Bal: {((parseFloat(lentOrOwe) || 0) + (parseFloat(borrowed) || 0) - (parseFloat(settled) || 0)).toLocaleString('en-IN')}</span>
+                  </td>
                   <td><input className="inline-input mono" type="number" placeholder="0" value={lentOrOwe} onChange={e => setLentOrOwe(e.target.value)} onKeyDown={ev => handleKeyDown(ev, false)} /></td>
                   <td><input className="inline-input mono" type="number" placeholder="0" value={settled} onChange={e => setSettled(e.target.value)} onKeyDown={ev => handleKeyDown(ev, false)} /></td>
                   <td>
@@ -138,11 +141,17 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
               {/* List Rows */}
               {credits.map((c, i) => {
                 const isEditing = editingIndex === i;
+                const balance = (c.lentOrOwe || 0) + (c.borrowed || 0) - (c.settled || 0);
+
                 if (isEditing) {
+                  const currentBalance = (parseFloat(lentOrOwe) || 0) + (parseFloat(borrowed) || 0) - (parseFloat(settled) || 0);
                   return (
                     <tr key={i} className="inline-edit-row c-debt-form">
                       <td><input className="inline-input" value={entity} onChange={e => setEntity(e.target.value)} onKeyDown={ev => handleKeyDown(ev, true)} autoFocus /></td>
-                      <td><input className="inline-input mono" type="number" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={ev => handleKeyDown(ev, true)} /></td>
+                      <td>
+                        <input className="inline-input mono" type="number" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={ev => handleKeyDown(ev, true)} />
+                        <span className="field-hint">Bal: {currentBalance.toLocaleString('en-IN')}</span>
+                      </td>
                       <td><input className="inline-input mono" type="number" value={lentOrOwe} onChange={e => setLentOrOwe(e.target.value)} onKeyDown={ev => handleKeyDown(ev, true)} /></td>
                       <td><input className="inline-input mono" type="number" value={settled} onChange={e => setSettled(e.target.value)} onKeyDown={ev => handleKeyDown(ev, true)} /></td>
                       <td>
@@ -159,7 +168,12 @@ export default function CreditDebt({ credits, onSave, onEditingChange, readOnly 
                 return (
                   <tr key={i} className="expense-row-hover">
                     <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{c.entity}</td>
-                    <td className="val mono">{fmt(c.amount)}</td>
+                    <td className="val">
+                      <div className="mono" style={balance !== c.amount ? { color: 'var(--amber)' } : undefined}>
+                        {fmt(c.amount)}
+                      </div>
+                      <span className="field-hint">Bal: {balance.toLocaleString('en-IN')}</span>
+                    </td>
                     <td className="val mono green">{fmt(c.lentOrOwe)}</td>
                     <td className="val mono muted">{fmt(c.settled)}</td>
                     <td className="val red">
