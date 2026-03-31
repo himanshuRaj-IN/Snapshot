@@ -144,6 +144,12 @@
   gap: 24px;
 }
 
+.app-locked {
+  filter: blur(15px);
+  pointer-events: none;
+  user-select: none;
+}
+
 /* Bottom grid: 3 columns */
 .grid-bottom {
   display: grid;

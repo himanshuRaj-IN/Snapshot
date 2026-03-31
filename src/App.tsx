@@ -6,6 +6,7 @@ import SummaryBar from './components/SummaryBar';
 import MajorExpenses from './components/MajorExpenses';
 import InvestmentSaving from './components/InvestmentSaving';
 import CreditDebt from './components/CreditDebt';
+import SecurityLock from './components/SecurityLock';
 import './App.css';
 
 export default function App() {
@@ -15,6 +16,33 @@ export default function App() {
   const [months, setMonths] = useState<{key: string, label: string}[]>([]);
   const [dropdownKey, setDropdownKey] = useState<string | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>(null);
+
+  const [isLocked, setIsLocked] = useState(true);
+  
+  // Inactivity Timer (45s)
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setIsLocked(true);
+      }, 45000); // 45 seconds
+    };
+
+    if (!isLocked) {
+      window.addEventListener('mousemove', resetTimer);
+      window.addEventListener('keydown', resetTimer);
+      window.addEventListener('click', resetTimer);
+      resetTimer();
+    }
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keydown', resetTimer);
+      window.removeEventListener('click', resetTimer);
+    };
+  }, [isLocked]);
 
   // 1. On mount, fetch available months and select the most recent one automatically
   useEffect(() => {
@@ -142,8 +170,10 @@ export default function App() {
   if (!snapshot) return null;
 
   return (
-    <div className="app">
-      {/* ── Header ───────────────────────────────────────────────────── */}
+    <>
+      {isLocked && <SecurityLock onUnlock={() => setIsLocked(false)} />}
+      <div className={`app ${isLocked ? 'app-locked' : ''}`}>
+        {/* ── Header ───────────────────────────────────────────────────── */}
       <header className="app-header">
         <div className="app-header-inner">
           {/* Logo (Left) */}
@@ -285,5 +315,6 @@ export default function App() {
         </div>
       </main>
     </div>
-  );
+  </>
+);
 }
