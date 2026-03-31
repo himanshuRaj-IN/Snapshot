@@ -168,7 +168,7 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
     <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="card-title">
         <span className="card-title-icon" style={{ background: 'var(--red-soft)', color: 'var(--red)' }}>↓</span>
-        Major Expenses
+        Expenses
         <button
           className="card-add-btn"
           onClick={() => setShowVisuals(v => !v)}
