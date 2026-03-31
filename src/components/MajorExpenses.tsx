@@ -144,10 +144,10 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
     }
 
     return (
-      <tr key={e.originalIndex} className="expense-row-hover">
-        <td className="exp-cat">{e.category}</td>
-        <td>{e.name || <span className="muted">—</span>}</td>
-        <td className="val">
+      <tr key={e.originalIndex} className={`expense-row-hover ${e.category === 'UNACCOUNTED' ? 'row-unaccounted' : ''}`}>
+        <td className={`exp-cat ${e.category === 'UNACCOUNTED' ? 'amber' : ''}`}>{e.category}</td>
+        <td className={e.category === 'UNACCOUNTED' ? 'amber' : undefined}>{e.name || <span className="muted">—</span>}</td>
+        <td className={`val ${e.category === 'UNACCOUNTED' ? 'amber' : ''}`}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
             <span className="mono">{fmt(e.amount)}</span>
             <div className="row-actions">
@@ -253,13 +253,7 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
               
               <table className="snap-table" style={{ borderTop: '1px solid var(--border)', marginTop: '4px' }}>
                 <tbody>
-                  {unaccountedExpenses.map((e, i) => (
-                    <tr key={`unacc-${i}`} className="row-unaccounted">
-                      <td className="exp-cat amber">{e.category}</td>
-                      <td className="amber">{e.name || <span className="muted">—</span>}</td>
-                      <td className="val amber mono">{fmt(e.amount)}</td>
-                    </tr>
-                  ))}
+                  {unaccountedExpenses.map(renderExpenseRow)}
                   {(unaccounted > 0 || unaccounted < 0) && (
                     <tr className="row-unaccounted">
                       <td colSpan={2} className="exp-cat amber">Unaccounted (Gap)</td>
