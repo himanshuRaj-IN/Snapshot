@@ -47,7 +47,7 @@ export default function ExpenseVisuals({ snapshot }: Props) {
   const contingencyFund = snapshot.investments.find(inv => inv.name === 'S-CONTINGENCY FUND');
   const budgetUfs = contingencyFund && contingencyFund.expected ? contingencyFund.expected : budgets.budgetUfs;
 
-  // Categorical Data (for Bar Chart)
+  // Categorical Data (for Bar Chart - Vertical Bars)
   const categoryMap: Record<string, number> = {};
   expenses.forEach(e => {
     if (e.amount > 0) {
@@ -61,44 +61,37 @@ export default function ExpenseVisuals({ snapshot }: Props) {
   const barData = Object.entries(categoryMap)
     .sort((a,b) => b[1] - a[1])
     .map(([name, value], i) => ({ 
-      name: name.replace(' ESSENTIALS', '').replace(' NONESSENTIALS', ' (Non-E)'), 
+      name: name.replace(' ESSENTIALS', '').replace(' (NON-E)', '').replace('NONESSENTIALS', 'Non-E'), 
       value, 
       fill: COLORS[i % COLORS.length] 
     }));
 
-  // Budget Data (for 3-Ring Radial Chart)
-  const getPct = (s: number, b: number) => b > 0 ? (s / b) * 100 : 0;
-  const ringData = [
-    { name: 'General',    value: getPct(totalGeneral, budgets.budget),       fill: 'var(--accent)' },
-    { name: 'Settlement', value: getPct(totalInSettlement, budgets.budgetSmt), fill: 'var(--blue)'   },
-    { name: 'Unforeseen', value: getPct(totalUnforeseen, budgetUfs),        fill: 'var(--red)'    },
-  ];
-
   return (
     <div className="expense-visuals">
-      {/* ── Category Bar Chart ───────────────────────────────────── */}
+      {/* ── Category Bar Chart (Vertical Bars) ─────────────────────── */}
       <div className="ev-section">
-        <div className="ev-section-title">Spending by Category</div>
-        <div className="ev-bar-container">
-          <ResponsiveContainer width="100%" height={Math.max(barData.length * 40, 200)}>
-            <BarChart layout="vertical" data={barData} margin={{ left: 10, right: 40, top: 0, bottom: 0 }}>
-              <XAxis type="number" hide />
-              <YAxis 
-                type="category" 
+        <div className="ev-section-title">Spending Distribution</div>
+        <div className="ev-bar-container" style={{ height: '240px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <XAxis 
                 dataKey="name" 
-                width={120} 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 10, fill: 'var(--text-muted)' }} 
+                tick={{ fontSize: 9, fill: 'var(--text-muted)' }} 
+                interval={0}
+                angle={-25}
+                textAnchor="end"
               />
+              <YAxis hide />
               <Tooltip 
                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                 contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.75rem' }}
                 formatter={(val: any) => `₹${Number(val).toLocaleString('en-IN')}`}
               />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={24}>
                 {barData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={barData[index].fill} fillOpacity={0.8} />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} fillOpacity={0.8} />
                 ))}
               </Bar>
             </BarChart>
@@ -106,71 +99,58 @@ export default function ExpenseVisuals({ snapshot }: Props) {
         </div>
       </div>
 
-      {/* ── 3-Ring Budget Chart ──────────────────────────────────── */}
+      {/* ── Individual Budget Rings ────────────────────────────────── */}
       <div className="ev-section">
-        <div className="ev-section-title">Budget Ring Status</div>
-        <div className="ev-ring-row">
-          <div className="ev-ring-container">
-            <ResponsiveContainer width="100%" height={240}>
-              <RadialBarChart 
-                innerRadius="30%" 
-                outerRadius="100%" 
-                data={ringData} 
-                startAngle={90} 
-                endAngle={-270}
-              >
-                <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                <RadialBar
-                  background={{ fill: 'rgba(255,255,255,0.05)' }}
-                  dataKey="value"
-                  cornerRadius={10}
-                  animationDuration={1500}
-                />
-              </RadialBarChart>
-            </ResponsiveContainer>
-            <div className="ev-ring-center">
-              <span className="ev-ring-percent">%{Math.round(getPct(totalGeneral, budgets.budget))}</span>
-              <span className="ev-ring-lbl">General</span>
-            </div>
-          </div>
-
-          <div className="ev-ring-legend">
-            {ringData.map(r => (
-              <div key={r.name} className="ev-legend-item">
-                <div className="ev-legend-dot" style={{ background: r.fill }} />
-                <span className="ev-legend-name">{r.name}</span>
-                <span className="ev-legend-val mono">{Math.round(r.value)}%</span>
-              </div>
-            ))}
-          </div>
+        <div className="ev-section-title">Budget Status</div>
+        <div className="ev-rings-grid">
+          <BudgetRing label="General" spent={totalGeneral} limit={budgets.budget} color="var(--accent)" />
+          <BudgetRing label="Settlement" spent={totalInSettlement} limit={budgets.budgetSmt} color="var(--blue)" />
+          <BudgetRing label="Unforeseen" spent={totalUnforeseen} limit={budgetUfs} color="var(--red)" />
         </div>
-      </div>
-
-      {/* ── Text Progress bars (Still useful as reference) ────────── */}
-      <div className="ev-budgets-col" style={{ padding: '0 12px' }}>
-        <BudgetProgress label="General" spent={totalGeneral} limit={budgets.budget} color="var(--accent)" />
-        <BudgetProgress label="Settlement" spent={totalInSettlement} limit={budgets.budgetSmt} color="var(--blue)" />
-        <BudgetProgress label="Unforeseen" spent={totalUnforeseen} limit={budgetUfs} color="var(--red)" />
       </div>
     </div>
   );
 }
 
-function BudgetProgress({ label, spent, limit, color }: { label: string; spent: number; limit: number; color: string }) {
-  const over = spent > limit;
-  const pct  = limit > 0 ? (spent / limit) * 100 : 0;
+function BudgetRing({ label, spent, limit, color }: { label: string, spent: number, limit: number, color: string }) {
+  const pct = limit > 0 ? (spent / limit) * 100 : 0;
   const displayPct = Math.min(pct, 100);
+  const over = spent > limit;
+
+  // Single-ring data
+  const data = [{ name: label, value: displayPct }];
+
   return (
-    <div className="ev-budget-row" style={{ margin: '8px 0' }}>
-      <div className="ev-budget-info">
-        <span className="ev-budget-label" style={{ color }}>{label}</span>
-        <span className="ev-budget-values mono" style={{ fontSize: '0.7rem' }}>
-          ₹{spent.toLocaleString('en-IN')} / ₹{limit.toLocaleString('en-IN')}
-        </span>
+    <div className="ev-ring-gauge">
+      <div className="ev-ring-gauge-svg">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadialBarChart 
+            innerRadius="75%" 
+            outerRadius="100%" 
+            data={data} 
+            startAngle={90} 
+            endAngle={-270}
+          >
+            <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+            <RadialBar
+              background={{ fill: 'rgba(255,255,255,0.05)' }}
+              dataKey="value"
+              cornerRadius={10}
+              fill={color}
+              animationDuration={1500}
+            />
+          </RadialBarChart>
+        </ResponsiveContainer>
+        <div className="ev-gauge-center">
+          <span className="ev-gauge-pct" style={{ color: over ? 'var(--red)' : 'var(--text-primary)' }}>
+            {Math.round(pct)}%
+          </span>
+          <span className="ev-gauge-val mono">
+            ₹{spent > 9999 ? (spent/1000).toFixed(1)+'k' : spent}
+          </span>
+        </div>
       </div>
-      <div className="ev-progress-track">
-        <div className="ev-progress-fill" style={{ width: `${displayPct}%`, background: color }} />
-      </div>
+      <div className="ev-gauge-label">{label}</div>
     </div>
   );
 }

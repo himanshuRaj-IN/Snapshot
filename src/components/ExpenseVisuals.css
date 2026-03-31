@@ -21,30 +21,37 @@
   padding-bottom: 8px;
 }
 
-/* Category Vertical Bar Chart */
+/* Vertical Bar Chart Container */
 .ev-bar-container {
   padding: 8px 0;
 }
 
-/* Ring Chart Layout */
-.ev-ring-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
+/* Individual Ring Gauges Grid */
+.ev-rings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   background: rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--border-light);
 }
 
-.ev-ring-container {
-  position: relative;
-  width: 240px;
-  height: 240px;
+.ev-ring-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-.ev-ring-center {
+.ev-ring-gauge-svg {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 120px;
+}
+
+.ev-gauge-center {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -55,71 +62,34 @@
   pointer-events: none;
 }
 
-.ev-ring-percent {
+.ev-gauge-pct {
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.ev-ring-lbl {
+.ev-gauge-val {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.ev-gauge-label {
   font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.ev-ring-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-  width: 100%;
-}
-
-.ev-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.75rem;
-}
-
-.ev-legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.ev-legend-name {
+  letter-spacing: 0.1em;
   color: var(--text-secondary);
-  flex: 1;
-}
-
-.ev-legend-val {
-  color: var(--text-primary);
   font-weight: 600;
+  text-align: center;
 }
 
-/* Progress bar styles (reused) */
-.ev-progress-track {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 3px;
-  position: relative;
-  overflow: hidden;
-}
-
-.ev-progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 1s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-@media (min-width: 600px) {
-  .ev-ring-row {
-    flex-direction: row;
-    padding: 32px;
-    gap: 48px;
+@media (max-width: 480px) {
+  .ev-rings-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .ev-ring-gauge-svg {
+    max-width: 140px;
   }
 }
