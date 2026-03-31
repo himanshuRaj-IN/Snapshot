@@ -19,7 +19,7 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
 
   const [adding, setAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [showVisuals, setShowVisuals] = useState(false);
+  const [showVisuals, setShowVisuals] = useState(true);
   
   // Form states (Add/Edit)
   const [category, setCategory] = useState<ExpenseCategory>('FIXED ESSENTIALS');
@@ -72,6 +72,7 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
 
   const handleStartEdit = (e: (ExpenseItem & { originalIndex: number })) => {
     setAdding(false);
+    setShowVisuals(false);
     setEditingIndex(e.originalIndex);
     setCategory(e.category as ExpenseCategory);
     setName(e.name);
@@ -179,7 +180,11 @@ export default function MajorExpenses({ snapshot, onSave, readOnly }: Props) {
         {!readOnly && (
           <button
             className="card-add-btn"
-            onClick={() => setAdding(v => !v)}
+            onClick={() => {
+              const next = !adding;
+              setAdding(next);
+              if (next) setShowVisuals(false);
+            }}
             aria-label="Add expense"
             title={adding ? 'Cancel' : 'Add expense'}
             style={adding ? { color: 'var(--red)', borderColor: 'var(--red)' } : undefined}
