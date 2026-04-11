@@ -9,6 +9,8 @@ import CreditDebt from './components/CreditDebt';
 import SecurityLock from './components/SecurityLock';
 import './App.css';
 
+const VALID_MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+
 export default function App() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,9 +50,34 @@ export default function App() {
   useEffect(() => {
     listSnapshotMonths().then(res => {
       setMonths(res);
+      
       if (res.length > 0) {
-        setDropdownKey(res[0].key);
-        setActiveKey(res[0].key);
+        // Calculate current and last month keys
+        const now = new Date();
+        const curM = VALID_MONTHS[now.getMonth()];
+        const curY = now.getFullYear();
+        const currentKey = `${curM}_${curY}`;
+
+        const lastD = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastM = VALID_MONTHS[lastD.getMonth()];
+        const lastY = lastD.getFullYear();
+        const lastKey = `${lastM}_${lastY}`;
+
+        // Priority 1: Current Month
+        if (res.some(m => m.key === currentKey)) {
+          setDropdownKey(currentKey);
+          setActiveKey(currentKey);
+        } 
+        // Priority 2: Last Month
+        else if (res.some(m => m.key === lastKey)) {
+          setDropdownKey(lastKey);
+          setActiveKey(lastKey);
+        }
+        // Priority 3: Most recent in List (sorted by DB)
+        else {
+          setDropdownKey(res[0].key);
+          setActiveKey(res[0].key);
+        }
       } else {
         // Fallback if absolutely nothing is in DB
         setDropdownKey('MAR_2026');
@@ -96,7 +123,6 @@ export default function App() {
     // Normalize format to strict Postgres expectations
     const formatted = input.toUpperCase().replace(/\s+/g, '_');
     const [m, y] = formatted.split('_');
-    const VALID_MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
     
     if (!m || !y || !/^\d{4}$/.test(y) || !VALID_MONTHS.includes(m)) {
       alert(`⚠️ Invalid Format: '${input}'\n\nPlease use the full month name and year. Example: "APRIL 2026" or "APRIL_2026"`);
