@@ -41,10 +41,13 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   const expDt  = opening.debtTaken   + inc('Debt Taken')   - dist('Debt Repaid');
 
   // Checks
-  const isInvOk = Math.abs(closing.investment - expInv) < 1;
-  const isSavOk = Math.abs(closing.saving - expSav) < 1;
-  const isBufOk = Math.abs(closing.buffer - expBuf) < 1;
-  const isChkOk = Math.abs(closing.checking - expChk) < 1;
+  // For these assets, having more than expected is considered a pass
+  const isInvOk = closing.investment >= expInv - 1;
+  const isSavOk = closing.saving >= expSav - 1;
+  const isBufOk = closing.buffer >= expBuf - 1;
+  const isChkOk = closing.checking >= expChk - 1;
+  
+  // For liabilities / loans, we still want exact matching
   const isCgOk  = Math.abs(closing.creditGiven - expCg) < 1;
   const isDtOk  = Math.abs(closing.debtTaken - expDt) < 1;
 
