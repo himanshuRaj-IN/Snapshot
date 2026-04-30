@@ -216,7 +216,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
                 )}
               </div>
 
-              {editingDist ? (
+{editingDist ? (
                 <div className="inc-edit-slots">
                   {distDraft.map((slot, i) => (
                     <div key={i} className="inc-slot-row">
@@ -235,7 +235,8 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
                 distributions.map((e, i) => {
                   const netNote =
                     e.label === 'Saving'   ? opening.saving   + e.amount :
-                    e.label === 'Buffer' || e.label === 'Checking' ? opening.checking + opening.buffer + e.amount : null;
+                    e.label === 'Buffer'   ? opening.buffer + e.amount :
+                    e.label === 'Checking' ? opening.checking + e.amount : null;
                   return (
                     <div key={i} className="sb-flow-row">
                       <span className="sb-flow-label">{e.label}</span>
