@@ -30,18 +30,21 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
 
   const hasExpenses = snapshot.expenses.length > 0;
 
-  const EXCLUDED_FROM_CHECKING = ['UNFORESEEN', 'IN SETTLEMENT', 'SETTLEMENT'];
+  // Same logic as MajorExpenses totalGeneral / totalUnforeseen
+  const EXCLUDED_FROM_GENERAL = ['IN-SETTLEMENT', 'SETTLED', 'UNFORESEEN'];
 
   const unforeseenExp = hasExpenses
     ? snapshot.expenses
-        .filter(e => e.category.toUpperCase() === 'UNFORESEEN')
+        .filter(e => e.category === 'UNFORESEEN')
         .reduce((sum, e) => sum + e.amount, 0)
     : 0;
 
+  // totalGeneral = general + unaccounted rows + unaccounted gap (same as Budget General spent)
   const regularExp = hasExpenses
     ? snapshot.expenses
-        .filter(e => !EXCLUDED_FROM_CHECKING.includes(e.category.toUpperCase()))
+        .filter(e => !EXCLUDED_FROM_GENERAL.includes(e.category))
         .reduce((sum, e) => sum + e.amount, 0)
+      + snapshot.expenseUnaccounted
     : (dist('Expense') || dist('For Expense')); // fallback for DB-loaded snapshots
 
   // Expected
