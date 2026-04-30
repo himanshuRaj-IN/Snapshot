@@ -34,19 +34,19 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
     ? snapshot.expenses
         .filter(e => e.category.toUpperCase() === 'UNFORESEEN')
         .reduce((sum, e) => sum + e.amount, 0)
-    : 0; // Can't split by category without expense rows
+    : 0;
 
   const regularExp = hasExpenses
     ? snapshot.expenses
         .filter(e => e.category.toUpperCase() !== 'UNFORESEEN')
         .reduce((sum, e) => sum + e.amount, 0)
-    : (dist('Expense') || dist('For Expense')); // Fall back to total expense distribution
+    : (dist('Expense') || dist('For Expense')); // fallback for DB-loaded snapshots
 
   // Expected
   const expInv = opening.investment + dist('Investment');
   const expSav = opening.saving     + dist('Saving') - dist('Credit Given');
   const expBuf = opening.buffer     + dist('Buffer') - unforeseenExp;
-  const expChk = opening.checking   + dist('Checking') - regularExp;
+  const expChk = opening.checking   - regularExp;   // Opening Checking minus regular expenses
   const expCg  = opening.creditGiven + dist('Credit Given') - inc('Credit Repaid');
   const expDt  = opening.debtTaken   + inc('Debt Taken')   - dist('Debt Repaid');
 
