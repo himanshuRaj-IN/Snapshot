@@ -28,13 +28,19 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   const inc = (lbl: string) => income.find(i => i.label === lbl)?.amount || 0;
   const sumDist = (...labels: string[]) => labels.reduce((sum, label) => sum + dist(label), 0);
 
-  const unforeseenExp = snapshot.expenses
-    .filter(e => e.category.toUpperCase() === 'UNFORESEEN')
-    .reduce((sum, e) => sum + e.amount, 0);
+  const hasExpenses = snapshot.expenses.length > 0;
 
-  const regularExp = snapshot.expenses
-    .filter(e => e.category.toUpperCase() !== 'UNFORESEEN')
-    .reduce((sum, e) => sum + e.amount, 0);
+  const unforeseenExp = hasExpenses
+    ? snapshot.expenses
+        .filter(e => e.category.toUpperCase() === 'UNFORESEEN')
+        .reduce((sum, e) => sum + e.amount, 0)
+    : 0; // Can't split by category without expense rows
+
+  const regularExp = hasExpenses
+    ? snapshot.expenses
+        .filter(e => e.category.toUpperCase() !== 'UNFORESEEN')
+        .reduce((sum, e) => sum + e.amount, 0)
+    : (dist('Expense') || dist('For Expense')); // Fall back to total expense distribution
 
   // Expected
   const expInv = opening.investment + dist('Investment');
