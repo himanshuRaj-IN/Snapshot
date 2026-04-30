@@ -23,11 +23,12 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   const { opening, closing, distributions, totalIncome } = snapshot;
 
   const dist = (lbl: string) => distributions.find(d => d.label === lbl)?.amount || 0;
+  const sumDist = (...labels: string[]) => labels.reduce((sum, label) => sum + dist(label), 0);
 
   // Expected
   const expInv = opening.investment + dist('Investment');
   const expSav = opening.saving     + dist('Saving') + dist('Credit Repaid') - dist('Credit Given');
-  const expChk = opening.checking   + dist('Checking') - dist('For Expense');
+  const expChk = opening.checking   + sumDist('Checking', 'Checking-C') - dist('For Expense');
   const expCg  = opening.creditGiven + dist('Credit Given') - dist('Credit Repaid');
   const expDt  = opening.debtTaken   + dist('Debt Taken')   - dist('Debt Repaid');
 
@@ -38,7 +39,7 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   const isCgOk  = Math.abs(closing.creditGiven - expCg) < 1;
   const isDtOk  = Math.abs(closing.debtTaken - expDt) < 1;
 
-  const incomeDistributed = dist('Investment') + dist('Saving') + dist('Checking');
+  const incomeDistributed = dist('Investment') + dist('Saving') + sumDist('Checking', 'Checking-C');
   const actualIncome = computedTotalOverride !== undefined ? computedTotalOverride : totalIncome;
   const isIncOk = Math.abs(actualIncome - incomeDistributed) < 1;
 
