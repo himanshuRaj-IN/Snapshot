@@ -30,6 +30,8 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
 
   const hasExpenses = snapshot.expenses.length > 0;
 
+  const EXCLUDED_FROM_CHECKING = ['UNFORESEEN', 'IN SETTLEMENT', 'SETTLEMENT'];
+
   const unforeseenExp = hasExpenses
     ? snapshot.expenses
         .filter(e => e.category.toUpperCase() === 'UNFORESEEN')
@@ -38,7 +40,7 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
 
   const regularExp = hasExpenses
     ? snapshot.expenses
-        .filter(e => e.category.toUpperCase() !== 'UNFORESEEN')
+        .filter(e => !EXCLUDED_FROM_CHECKING.includes(e.category.toUpperCase()))
         .reduce((sum, e) => sum + e.amount, 0)
     : (dist('Expense') || dist('For Expense')); // fallback for DB-loaded snapshots
 
