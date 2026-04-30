@@ -75,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { label: 'Investment', amount: Number(db.dist_investment) },
           { label: 'Saving', amount: Number(db.dist_saving) },
           { label: 'Buffer', amount: Number(db.dist_checking) },
-          { label: 'Buffer-C', amount: distBuffer },
+          { label: 'Checking', amount: distBuffer },
           { label: 'Credit Given', amount: Number(db.dist_credit_given) },
           { label: 'Credit Repaid', amount: Number(db.dist_credit_repaid) },
           { label: 'Debt Taken', amount: Number(db.dist_debt_taken) },
@@ -124,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return data.distributions.find((d: any) =>
           d.label === lbl ||
           (lbl === 'Buffer' && d.label === 'Checking') ||
-          (lbl === 'Buffer-C' && d.label === 'Checking-C')
+          (lbl === 'Checking' && d.label === 'Buffer-C')
         )?.amount || 0;
       };
       
@@ -161,7 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${qMonth}, ${qYear},
           ${op.investment}, ${op.saving}, ${op.checking}, ${op.buffer}, ${op.creditGiven}, ${op.debtTaken},
           ${cl.investment}, ${cl.saving}, ${cl.checking}, ${cl.buffer}, ${cl.creditGiven}, ${cl.debtTaken},
-          ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Buffer')}, ${getDist('Buffer-C')}, ${getDist('Credit Given')}, ${getDist('Credit Repaid')}, ${getDist('Debt Taken')}, ${getDist('Debt Repaid')}, ${getDist('For Expense')},
+          ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Buffer')}, ${getDist('Checking')}, ${getDist('Credit Given')}, ${getDist('Credit Repaid')}, ${getDist('Debt Taken')}, ${getDist('Debt Repaid')}, ${getDist('For Expense')},
           ${bd.budget}, ${bd.budgetSmt}, ${bd.budgetUfs}, ${bd.inSettlement}, ${bd.settled}, ${data.expenseUnaccounted},
           ${incLabel[0]}, ${incAmt[0]}, ${incLabel[1]}, ${incAmt[1]}, ${incLabel[2]}, ${incAmt[2]}, ${incLabel[3]}, ${incAmt[3]}, ${incLabel[4]}, ${incAmt[4]},
           ${invName[0]}, ${invAct[0]}, ${invExp[0]}, ${invName[1]}, ${invAct[1]}, ${invExp[1]}, ${invName[2]}, ${invAct[2]}, ${invExp[2]}, ${invName[3]}, ${invAct[3]}, ${invExp[3]}, ${invName[4]}, ${invAct[4]}, ${invExp[4]},

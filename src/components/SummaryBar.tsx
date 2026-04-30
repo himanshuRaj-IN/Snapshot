@@ -234,8 +234,8 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
               ) : (
                 distributions.map((e, i) => {
                   const netNote =
-                    e.label.startsWith('Saving')   ? opening.saving   + e.amount :
-                    e.label.startsWith('Checking') || e.label.startsWith('Buffer') ? opening.checking + opening.buffer + e.amount : null;
+                    e.label === 'Saving'   ? opening.saving   + e.amount :
+                    e.label === 'Buffer' || e.label === 'Checking' ? opening.checking + opening.buffer + e.amount : null;
                   return (
                     <div key={i} className="sb-flow-row">
                       <span className="sb-flow-label">{e.label}</span>
