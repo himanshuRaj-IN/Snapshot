@@ -27,7 +27,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
     const dt = income.find(e => e.label === 'Debt Taken') || { label: 'Debt Taken', amount: 0 };
 
     const filled = normalIncome.slice(0, 5).map(e => ({ label: e.label, amount: String(e.amount) }));
-    const padded = [...filled, ...EMPTY_SLOTS].slice(0, 5);
+    const padded: { label: string; amount: string; fixed?: boolean }[] = [...filled, ...EMPTY_SLOTS].slice(0, 5);
     
     padded.push({ label: 'Credit Repaid', amount: String(cr.amount), fixed: true });
     padded.push({ label: 'Debt Taken', amount: String(dt.amount), fixed: true });
