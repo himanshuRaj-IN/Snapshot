@@ -74,7 +74,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
   // Closing inline editor
   const [editingClosing, setEditingClosing] = useState(false);
   const [closingDraft, setClosingDraft] = useState({
-    investment: '', saving: '', checking: '', creditGiven: '', debtTaken: ''
+    investment: '', saving: '', checking: '', buffer: '', creditGiven: '', debtTaken: ''
   });
 
   const openClosingEditor = () => {
@@ -82,6 +82,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
       investment: String(closing.investment),
       saving: String(closing.saving),
       checking: String(closing.checking),
+      buffer: String(closing.buffer),
       creditGiven: String(closing.creditGiven),
       debtTaken: String(closing.debtTaken)
     });
@@ -96,6 +97,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
           investment: parseFloat(closingDraft.investment) || 0,
           saving: parseFloat(closingDraft.saving) || 0,
           checking: parseFloat(closingDraft.checking) || 0,
+          buffer: parseFloat(closingDraft.buffer) || 0,
           creditGiven: parseFloat(closingDraft.creditGiven) || 0,
           debtTaken: parseFloat(closingDraft.debtTaken) || 0
         }
@@ -119,7 +121,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
           <HealthBadge label="Cashflow"   pass={health.isIncOk} actual={computedTotal}            expected={health.incomeDistributed} icon="💰" />
           <HealthBadge label="Investment" pass={health.isInvOk} actual={closing.investment}       expected={health.expInv} icon="📈" />
           <HealthBadge label="Saving"     pass={health.isSavOk} actual={closing.saving}           expected={health.expSav} icon="🏦" />
-          <HealthBadge label="Checking"   pass={health.isChkOk} actual={closing.checking}         expected={health.expChk} icon="🏧" />
+          <HealthBadge label="Buffer"     pass={health.isChkOk} actual={closing.checking + closing.buffer}         expected={health.expChk} icon="🏧" />
           <HealthBadge label="Credit"     pass={health.isCgOk}  actual={closing.creditGiven}       expected={health.expCg} icon="🤝" />
           <HealthBadge label="Debt"       pass={health.isDtOk}  actual={closing.debtTaken}         expected={health.expDt} icon="💳" />
         </div>
@@ -133,13 +135,14 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
           <div className="sb-panel-grid">
             <SbRow label="Investment"  value={opening.investment} accent />
             <SbRow label="Saving"      value={opening.saving} />
+            <SbRow label="Buffer"      value={opening.buffer} />
             <SbRow label="Checking"    value={opening.checking} />
             <SbRow label="Credit Given" value={opening.creditGiven} dim />
             <SbRow label="Debt Taken"  value={opening.debtTaken} red />
           </div>
           <div className="sb-total">
             <span>Total</span>
-            <span className="mono">{fmt(opening.investment + opening.saving + opening.checking + opening.creditGiven)}</span>
+            <span className="mono">{fmt(opening.investment + opening.saving + opening.checking + opening.buffer + opening.creditGiven)}</span>
           </div>
         </div>
 
@@ -232,7 +235,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
                 distributions.map((e, i) => {
                   const netNote =
                     e.label.startsWith('Saving')   ? opening.saving   + e.amount :
-                    e.label.startsWith('Checking') ? opening.checking + e.amount : null;
+                    e.label.startsWith('Checking') || e.label.startsWith('Buffer') ? opening.checking + opening.buffer + e.amount : null;
                   return (
                     <div key={i} className="sb-flow-row">
                       <span className="sb-flow-label">{e.label}</span>
@@ -287,7 +290,8 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
               <div className="inc-edit-slots">
                 <ClosingInput label="Investment" value={closingDraft.investment} onChange={val => updateClosingDraft('investment', val)} expected={health.expInv} />
                 <ClosingInput label="Saving"     value={closingDraft.saving}     onChange={val => updateClosingDraft('saving', val)}     expected={health.expSav} />
-                <ClosingInput label="Checking"   value={closingDraft.checking}   onChange={val => updateClosingDraft('checking', val)}   expected={health.expChk} />
+                <ClosingInput label="Buffer"     value={closingDraft.buffer}     onChange={val => updateClosingDraft('buffer', val)}     expected={health.expChk * 0.5} />
+                <ClosingInput label="Checking"   value={closingDraft.checking}   onChange={val => updateClosingDraft('checking', val)}   expected={health.expChk * 0.5} />
                 <ClosingInput label="Credit Given" value={closingDraft.creditGiven} onChange={val => updateClosingDraft('creditGiven', val)} expected={health.expCg} />
                 <ClosingInput label="Debt Taken"  value={closingDraft.debtTaken}  onChange={val => updateClosingDraft('debtTaken', val)}  expected={health.expDt} />
               </div>
@@ -295,7 +299,8 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
               <>
                 <SbRow label="Investment"  value={closing.investment} expected={health.expInv} accent />
                 <SbRow label="Saving"      value={closing.saving}     expected={health.expSav} />
-                <SbRow label="Checking"    value={closing.checking}   expected={health.expChk} />
+                <SbRow label="Buffer"      value={closing.buffer}     expected={health.expChk * 0.5} />
+                <SbRow label="Checking"    value={closing.checking}   expected={health.expChk * 0.5} />
                 <SbRow label="Credit Given" value={closing.creditGiven} expected={health.expCg} dim />
                 <SbRow label="Debt Taken"  value={closing.debtTaken}  expected={health.expDt} red />
               </>
@@ -303,7 +308,7 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
           </div>
           <div className="sb-total">
             <span>Total</span>
-            <span className="mono">{fmt(closing.investment + closing.saving + closing.checking + closing.creditGiven)}</span>
+            <span className="mono">{fmt(closing.investment + closing.saving + closing.checking + closing.buffer + closing.creditGiven)}</span>
           </div>
         </div>
       </div>

@@ -49,23 +49,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
-      const opChecking1 = Number(db.op_checking_1 ?? db.op_checking1 ?? 0);
-      const clChecking1 = Number(db.cl_checking_1 ?? db.cl_checking1 ?? 0);
-      const distChecking1 = Number(db.dist_checking1 ?? db.dist_checking_1 ?? 0);
+      const opBuffer = Number(db.op_buffer ?? db.op_checking_1 ?? db.op_checking1 ?? 0);
+      const clBuffer = Number(db.cl_buffer ?? db.cl_checking_1 ?? db.cl_checking1 ?? 0);
+      const distBuffer = Number(db.dist_buffer ?? db.dist_checking1 ?? db.dist_checking_1 ?? 0);
 
       const snapshot = {
         month: `${qMonth} ${qYear}`,
         opening: {
           investment: Number(db.op_investment),
           saving: Number(db.op_saving),
-          checking: Number(db.op_checking) + opChecking1,
+          checking: Number(db.op_checking),
+          buffer: opBuffer,
           creditGiven: Number(db.op_credit_given),
           debtTaken: Number(db.op_debt_taken)
         },
         closing: {
           investment: Number(db.cl_investment),
           saving: Number(db.cl_saving),
-          checking: Number(db.cl_checking) + clChecking1,
+          checking: Number(db.cl_checking),
+          buffer: clBuffer,
           creditGiven: Number(db.cl_credit_given),
           debtTaken: Number(db.cl_debt_taken)
         },
@@ -73,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { label: 'Investment', amount: Number(db.dist_investment) },
           { label: 'Saving', amount: Number(db.dist_saving) },
           { label: 'Buffer', amount: Number(db.dist_checking) },
-          { label: 'Buffer-C', amount: distChecking1 },
+          { label: 'Buffer-C', amount: distBuffer },
           { label: 'Credit Given', amount: Number(db.dist_credit_given) },
           { label: 'Credit Repaid', amount: Number(db.dist_credit_repaid) },
           { label: 'Debt Taken', amount: Number(db.dist_debt_taken) },
@@ -91,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         totalIncome: income.reduce((s, i) => s + i.amount, 0),
         totalDistribution: [
-          Number(db.dist_investment), Number(db.dist_saving), Number(db.dist_checking), distChecking1,
+          Number(db.dist_investment), Number(db.dist_saving), Number(db.dist_checking), distBuffer,
           Number(db.dist_credit_given), Number(db.dist_credit_repaid), Number(db.dist_debt_taken),
           Number(db.dist_debt_repaid), Number(db.dist_for_expense)
         ].reduce((a, b) => a + b, 0),
@@ -147,9 +149,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await sql`
         INSERT INTO snapshots (
           month, year,
-          op_investment, op_saving, op_checking, op_credit_given, op_debt_taken,
-          cl_investment, cl_saving, cl_checking, cl_credit_given, cl_debt_taken,
-          dist_investment, dist_saving, dist_checking, dist_checking1, dist_credit_given, dist_credit_repaid, dist_debt_taken, dist_debt_repaid, dist_for_expense,
+          op_investment, op_saving, op_checking, op_buffer, op_credit_given, op_debt_taken,
+          cl_investment, cl_saving, cl_checking, cl_buffer, cl_credit_given, cl_debt_taken,
+          dist_investment, dist_saving, dist_checking, dist_buffer, dist_credit_given, dist_credit_repaid, dist_debt_taken, dist_debt_repaid, dist_for_expense,
           budget, budget_smt, budget_ufs, in_settlement, settled, unaccounted,
           income_1_label, income_1_amount, income_2_label, income_2_amount, income_3_label, income_3_amount, income_4_label, income_4_amount, income_5_label, income_5_amount,
           inv_1_name, inv_1_actual, inv_1_expected, inv_2_name, inv_2_actual, inv_2_expected, inv_3_name, inv_3_actual, inv_3_expected, inv_4_name, inv_4_actual, inv_4_expected, inv_5_name, inv_5_actual, inv_5_expected,
@@ -157,8 +159,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           is_freezed
         ) VALUES (
           ${qMonth}, ${qYear},
-          ${op.investment}, ${op.saving}, ${op.checking}, ${op.creditGiven}, ${op.debtTaken},
-          ${cl.investment}, ${cl.saving}, ${cl.checking}, ${cl.creditGiven}, ${cl.debtTaken},
+          ${op.investment}, ${op.saving}, ${op.checking}, ${op.buffer}, ${op.creditGiven}, ${op.debtTaken},
+          ${cl.investment}, ${cl.saving}, ${cl.checking}, ${cl.buffer}, ${cl.creditGiven}, ${cl.debtTaken},
           ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Buffer')}, ${getDist('Buffer-C')}, ${getDist('Credit Given')}, ${getDist('Credit Repaid')}, ${getDist('Debt Taken')}, ${getDist('Debt Repaid')}, ${getDist('For Expense')},
           ${bd.budget}, ${bd.budgetSmt}, ${bd.budgetUfs}, ${bd.inSettlement}, ${bd.settled}, ${data.expenseUnaccounted},
           ${incLabel[0]}, ${incAmt[0]}, ${incLabel[1]}, ${incAmt[1]}, ${incLabel[2]}, ${incAmt[2]}, ${incLabel[3]}, ${incAmt[3]}, ${incLabel[4]}, ${incAmt[4]},
@@ -167,9 +169,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${data.isFreezed || false}
         )
         ON CONFLICT (month, year) DO UPDATE SET
-          op_investment=EXCLUDED.op_investment, op_saving=EXCLUDED.op_saving, op_checking=EXCLUDED.op_checking, op_credit_given=EXCLUDED.op_credit_given, op_debt_taken=EXCLUDED.op_debt_taken,
-          cl_investment=EXCLUDED.cl_investment, cl_saving=EXCLUDED.cl_saving, cl_checking=EXCLUDED.cl_checking, cl_credit_given=EXCLUDED.cl_credit_given, cl_debt_taken=EXCLUDED.cl_debt_taken,
-          dist_investment=EXCLUDED.dist_investment, dist_saving=EXCLUDED.dist_saving, dist_checking=EXCLUDED.dist_checking, dist_checking1=EXCLUDED.dist_checking1, dist_credit_given=EXCLUDED.dist_credit_given, dist_credit_repaid=EXCLUDED.dist_credit_repaid, dist_debt_taken=EXCLUDED.dist_debt_taken, dist_debt_repaid=EXCLUDED.dist_debt_repaid, dist_for_expense=EXCLUDED.dist_for_expense,
+          op_investment=EXCLUDED.op_investment, op_saving=EXCLUDED.op_saving, op_checking=EXCLUDED.op_checking, op_buffer=EXCLUDED.op_buffer, op_credit_given=EXCLUDED.op_credit_given, op_debt_taken=EXCLUDED.op_debt_taken,
+          cl_investment=EXCLUDED.cl_investment, cl_saving=EXCLUDED.cl_saving, cl_checking=EXCLUDED.cl_checking, cl_buffer=EXCLUDED.cl_buffer, cl_credit_given=EXCLUDED.cl_credit_given, cl_debt_taken=EXCLUDED.cl_debt_taken,
+          dist_investment=EXCLUDED.dist_investment, dist_saving=EXCLUDED.dist_saving, dist_checking=EXCLUDED.dist_checking, dist_buffer=EXCLUDED.dist_buffer, dist_credit_given=EXCLUDED.dist_credit_given, dist_credit_repaid=EXCLUDED.dist_credit_repaid, dist_debt_taken=EXCLUDED.dist_debt_taken, dist_debt_repaid=EXCLUDED.dist_debt_repaid, dist_for_expense=EXCLUDED.dist_for_expense,
           budget=EXCLUDED.budget, budget_smt=EXCLUDED.budget_smt, budget_ufs=EXCLUDED.budget_ufs, in_settlement=EXCLUDED.in_settlement, settled=EXCLUDED.settled, unaccounted=EXCLUDED.unaccounted,
           income_1_label=EXCLUDED.income_1_label, income_1_amount=EXCLUDED.income_1_amount, income_2_label=EXCLUDED.income_2_label, income_2_amount=EXCLUDED.income_2_amount, income_3_label=EXCLUDED.income_3_label, income_3_amount=EXCLUDED.income_3_amount, income_4_label=EXCLUDED.income_4_label, income_4_amount=EXCLUDED.income_4_amount, income_5_label=EXCLUDED.income_5_label, income_5_amount=EXCLUDED.income_5_amount,
           inv_1_name=EXCLUDED.inv_1_name, inv_1_actual=EXCLUDED.inv_1_actual, inv_1_expected=EXCLUDED.inv_1_expected, inv_2_name=EXCLUDED.inv_2_name, inv_2_actual=EXCLUDED.inv_2_actual, inv_2_expected=EXCLUDED.inv_2_expected, inv_3_name=EXCLUDED.inv_3_name, inv_3_actual=EXCLUDED.inv_3_actual, inv_3_expected=EXCLUDED.inv_3_expected, inv_4_name=EXCLUDED.inv_4_name, inv_4_actual=EXCLUDED.inv_4_actual, inv_4_expected=EXCLUDED.inv_4_expected, inv_5_name=EXCLUDED.inv_5_name, inv_5_actual=EXCLUDED.inv_5_actual, inv_5_expected=EXCLUDED.inv_5_expected,

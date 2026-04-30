@@ -7,7 +7,8 @@
 export interface AccountBalance {
   investment: number;
   saving: number;
-  checking: number;    // "Buffer" in UI — combines checking + checking1 from DB
+  checking: number;    // main checking account
+  buffer: number;      // buffer/contingency fund
   creditGiven: number;  // money we lent out
   debtTaken: number;    // money we borrowed from others
 }

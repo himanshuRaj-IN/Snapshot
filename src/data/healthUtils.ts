@@ -28,18 +28,18 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   // Expected
   const expInv = opening.investment + dist('Investment');
   const expSav = opening.saving     + dist('Saving') + dist('Credit Repaid') - dist('Credit Given');
-  const expChk = opening.checking   + sumDist('Checking', 'Checking-C') - dist('For Expense');
+  const expChk = (opening.checking + opening.buffer) + sumDist('Checking', 'Buffer', 'Checking-C', 'Buffer-C') - dist('For Expense');
   const expCg  = opening.creditGiven + dist('Credit Given') - dist('Credit Repaid');
   const expDt  = opening.debtTaken   + dist('Debt Taken')   - dist('Debt Repaid');
 
   // Checks
   const isInvOk = Math.abs(closing.investment - expInv) < 1;
   const isSavOk = Math.abs(closing.saving - expSav) < 1;
-  const isChkOk = Math.abs(closing.checking - expChk) < 1;
+  const isChkOk = Math.abs((closing.checking + closing.buffer) - expChk) < 1;
   const isCgOk  = Math.abs(closing.creditGiven - expCg) < 1;
   const isDtOk  = Math.abs(closing.debtTaken - expDt) < 1;
 
-  const incomeDistributed = dist('Investment') + dist('Saving') + sumDist('Checking', 'Checking-C');
+  const incomeDistributed = dist('Investment') + dist('Saving') + sumDist('Checking', 'Buffer', 'Checking-C', 'Buffer-C');
   const actualIncome = computedTotalOverride !== undefined ? computedTotalOverride : totalIncome;
   const isIncOk = Math.abs(actualIncome - incomeDistributed) < 1;
 
@@ -47,7 +47,7 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   if (!isIncOk) failures.push('💰 Cashflow Mismatch');
   if (!isInvOk) failures.push('📈 Investment Balance Mismatch');
   if (!isSavOk) failures.push('🏦 Saving Balance Mismatch');
-  if (!isChkOk) failures.push('🏧 Checking Balance Mismatch');
+  if (!isChkOk) failures.push('🧰 Buffer Balance Mismatch');
   if (!isCgOk)  failures.push('🤝 Credit Given Mismatch');
   if (!isDtOk)  failures.push('💳 Debt Taken Mismatch');
 

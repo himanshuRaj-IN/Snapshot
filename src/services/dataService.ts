@@ -38,8 +38,8 @@ export async function getSnapshot(_monthKey: string): Promise<Snapshot> {
   const [m, y] = _monthKey.split('_');
   return {
     month: `${m || 'MARCH'} ${y || 2026}`,
-    opening: { investment: 0, saving: 0, checking: 0, creditGiven: 0, debtTaken: 0 },
-    closing: { investment: 0, saving: 0, checking: 0, creditGiven: 0, debtTaken: 0 },
+    opening: { investment: 0, saving: 0, checking: 0, buffer: 0, creditGiven: 0, debtTaken: 0 },
+    closing: { investment: 0, saving: 0, checking: 0, buffer: 0, creditGiven: 0, debtTaken: 0 },
     income: [],
     distributions: [],
     investments: [],
