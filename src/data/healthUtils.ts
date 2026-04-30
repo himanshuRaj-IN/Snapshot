@@ -46,7 +46,7 @@ export function getHealthStatus(snapshot: Snapshot, computedTotalOverride?: numb
   const expInv = opening.investment + dist('Investment');
   const expSav = opening.saving     + dist('Saving') - dist('Credit Given');
   const expBuf = opening.buffer     + dist('Buffer') - unforeseenExp;
-  const expChk = opening.checking   - regularExp;   // Opening Checking minus regular expenses
+  const expChk = opening.checking + dist('Checking') - regularExp;   // Opening + Checking dist - regular expenses
   const expCg  = opening.creditGiven + dist('Credit Given') - inc('Credit Repaid');
   const expDt  = opening.debtTaken   + inc('Debt Taken')   - dist('Debt Repaid');
 
