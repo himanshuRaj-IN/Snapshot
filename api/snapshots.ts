@@ -72,8 +72,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         distributions: [
           { label: 'Investment', amount: Number(db.dist_investment) },
           { label: 'Saving', amount: Number(db.dist_saving) },
-          { label: 'Checking', amount: Number(db.dist_checking) },
-          { label: 'Checking-C', amount: distChecking1 },
+          { label: 'Buffer', amount: Number(db.dist_checking) },
+          { label: 'Buffer-C', amount: distChecking1 },
           { label: 'Credit Given', amount: Number(db.dist_credit_given) },
           { label: 'Credit Repaid', amount: Number(db.dist_credit_repaid) },
           { label: 'Debt Taken', amount: Number(db.dist_debt_taken) },
@@ -118,7 +118,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const cl = data.closing;
       const bd = data.expenseBudgets;
       
-      const getDist = (lbl: string) => data.distributions.find((d: any) => d.label === lbl)?.amount || 0;
+      const getDist = (lbl: string) => {
+        return data.distributions.find((d: any) =>
+          d.label === lbl ||
+          (lbl === 'Buffer' && d.label === 'Checking') ||
+          (lbl === 'Buffer-C' && d.label === 'Checking-C')
+        )?.amount || 0;
+      };
       
       // flatten income
       const incLabel: string[] = [];
@@ -153,7 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${qMonth}, ${qYear},
           ${op.investment}, ${op.saving}, ${op.checking}, ${op.creditGiven}, ${op.debtTaken},
           ${cl.investment}, ${cl.saving}, ${cl.checking}, ${cl.creditGiven}, ${cl.debtTaken},
-          ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Checking')}, ${getDist('Checking-C')}, ${getDist('Credit Given')}, ${getDist('Credit Repaid')}, ${getDist('Debt Taken')}, ${getDist('Debt Repaid')}, ${getDist('For Expense')},
+          ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Buffer')}, ${getDist('Buffer-C')}, ${getDist('Credit Given')}, ${getDist('Credit Repaid')}, ${getDist('Debt Taken')}, ${getDist('Debt Repaid')}, ${getDist('For Expense')},
           ${bd.budget}, ${bd.budgetSmt}, ${bd.budgetUfs}, ${bd.inSettlement}, ${bd.settled}, ${data.expenseUnaccounted},
           ${incLabel[0]}, ${incAmt[0]}, ${incLabel[1]}, ${incAmt[1]}, ${incLabel[2]}, ${incAmt[2]}, ${incLabel[3]}, ${incAmt[3]}, ${incLabel[4]}, ${incAmt[4]},
           ${invName[0]}, ${invAct[0]}, ${invExp[0]}, ${invName[1]}, ${invAct[1]}, ${invExp[1]}, ${invName[2]}, ${invAct[2]}, ${invExp[2]}, ${invName[3]}, ${invAct[3]}, ${invExp[3]}, ${invName[4]}, ${invAct[4]}, ${invExp[4]},

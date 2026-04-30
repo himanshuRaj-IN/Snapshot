@@ -7,14 +7,14 @@
 export interface AccountBalance {
   investment: number;
   saving: number;
-  checking: number;
+  checking: number;    // "Buffer" in UI — combines checking + checking1 from DB
   creditGiven: number;  // money we lent out
   debtTaken: number;    // money we borrowed from others
 }
 
 /** A single income / distribution entry */
 export interface CashFlowEntry {
-  label: string;       // e.g. "FEB_Salary", "INVESTMENT", "CREDIT REPAID"
+  label: string;       // e.g. "FEB_Salary", "Investment", "Buffer", "Buffer-C", "Credit Repaid"
   amount: number;
 }
 
