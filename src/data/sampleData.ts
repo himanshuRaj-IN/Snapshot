@@ -28,21 +28,21 @@ export const MAR_2026: Snapshot = {
   },
 
   // ── Cash Flow ───────────────────────────────────────────────────────────────
-  totalIncome: 75333,
+  totalIncome: 110333,
   income: [
     { label: 'FEB_Salary', amount: 75333 },
+    { label: 'Credit Repaid', amount: 35000 },
+    { label: 'Debt Taken', amount: 0 },
   ],
 
   totalDistribution: 326366,
   distributions: [
     { label: 'Investment', amount: 16000 },
-    { label: 'Saving', amount: 32842 },
+    { label: 'Saving', amount: 67842 },
     { label: 'Buffer', amount: 26491 },
-    { label: 'Credit Repaid', amount: 35000 },
     { label: 'Credit Given', amount: 50000 },
-    { label: 'Debt Taken', amount: 0 },
     { label: 'Debt Repaid', amount: 0 },
-    { label: 'For Expense', amount: 24704 },
+    { label: 'Expense', amount: 24704 },
   ],
 
   // ── Major Expenses ──────────────────────────────────────────────────────────

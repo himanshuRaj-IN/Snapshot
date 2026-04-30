@@ -127,13 +127,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           (lbl === 'Checking' && d.label === 'Buffer-C')
         )?.amount || 0;
       };
+
+      const getInc = (lbl: string) => {
+        return data.income.find((i: any) => i.label === lbl)?.amount || 0;
+      };
       
-      // flatten income
+      const distCreditRepaid = getInc('Credit Repaid') || getDist('Credit Repaid');
+      const distDebtTaken = getInc('Debt Taken') || getDist('Debt Taken');
+
+      // flatten income (exclude fixed slots so they don't consume the 5 general slots)
       const incLabel: string[] = [];
       const incAmt: number[] = [];
+      const normalIncome = data.income.filter((i: any) => i.label !== 'Credit Repaid' && i.label !== 'Debt Taken');
       for (let i = 0; i < 5; i++) {
-        incLabel.push(data.income[i] ? data.income[i].label : null);
-        incAmt.push(data.income[i] ? data.income[i].amount : null);
+        incLabel.push(normalIncome[i] ? normalIncome[i].label : null);
+        incAmt.push(normalIncome[i] ? normalIncome[i].amount : null);
       }
 
       // flatten investments
@@ -161,7 +169,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${qMonth}, ${qYear},
           ${op.investment}, ${op.saving}, ${op.checking}, ${op.buffer}, ${op.creditGiven}, ${op.debtTaken},
           ${cl.investment}, ${cl.saving}, ${cl.checking}, ${cl.buffer}, ${cl.creditGiven}, ${cl.debtTaken},
-          ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Buffer')}, ${getDist('Checking')}, ${getDist('Credit Given')}, ${getDist('Credit Repaid')}, ${getDist('Debt Taken')}, ${getDist('Debt Repaid')}, ${getDist('For Expense')},
+          ${getDist('Investment')}, ${getDist('Saving')}, ${getDist('Buffer')}, ${getDist('Checking')}, ${getDist('Credit Given')}, ${distCreditRepaid}, ${distDebtTaken}, ${getDist('Debt Repaid')}, ${getDist('Expense') || getDist('For Expense')},
           ${bd.budget}, ${bd.budgetSmt}, ${bd.budgetUfs}, ${bd.inSettlement}, ${bd.settled}, ${data.expenseUnaccounted},
           ${incLabel[0]}, ${incAmt[0]}, ${incLabel[1]}, ${incAmt[1]}, ${incLabel[2]}, ${incAmt[2]}, ${incLabel[3]}, ${incAmt[3]}, ${incLabel[4]}, ${incAmt[4]},
           ${invName[0]}, ${invAct[0]}, ${invExp[0]}, ${invName[1]}, ${invAct[1]}, ${invExp[1]}, ${invName[2]}, ${invAct[2]}, ${invExp[2]}, ${invName[3]}, ${invAct[3]}, ${invExp[3]}, ${invName[4]}, ${invAct[4]}, ${invExp[4]},

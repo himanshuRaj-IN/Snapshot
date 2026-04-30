@@ -20,6 +20,24 @@ export async function getSnapshot(_monthKey: string): Promise<Snapshot> {
     if (snapRes.ok) {
       const dbSnap = await snapRes.json();
       if (dbSnap) {
+        if (!dbSnap.income) dbSnap.income = [];
+        if (dbSnap.distributions) {
+          dbSnap.distributions.forEach((d: any) => {
+            if (d.label === 'For Expense') d.label = 'Expense';
+          });
+
+          // Migrate Credit Repaid and Debt Taken from distributions to income
+          const toMove = dbSnap.distributions.filter((d: any) => d.label === 'Credit Repaid' || d.label === 'Debt Taken');
+          if (toMove.length > 0) {
+            dbSnap.income.push(...toMove);
+            dbSnap.distributions = dbSnap.distributions.filter((d: any) => d.label !== 'Credit Repaid' && d.label !== 'Debt Taken');
+            
+            // Adjust totals
+            const movedAmount = toMove.reduce((sum: number, d: any) => sum + (d.amount || 0), 0);
+            dbSnap.totalIncome = (dbSnap.totalIncome || 0) + movedAmount;
+            dbSnap.totalDistribution = (dbSnap.totalDistribution || 0) - movedAmount;
+          }
+        }
         const expenses = transRes.ok ? await transRes.json() : [];
         const credits = ledgRes.ok ? await ledgRes.json() : [];
         

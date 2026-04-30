@@ -20,9 +20,12 @@ export default function App() {
   const [activeKey, setActiveKey] = useState<string | null>(null);
 
   const [isLocked, setIsLocked] = useState(true);
+  const [isIdlePaused, setIsIdlePaused] = useState(false);
   
   // Inactivity Timer (45s)
   useEffect(() => {
+    if (isIdlePaused) return;
+
     let timeout: NodeJS.Timeout;
     const resetTimer = () => {
       clearTimeout(timeout);
@@ -44,7 +47,7 @@ export default function App() {
       window.removeEventListener('keydown', resetTimer);
       window.removeEventListener('click', resetTimer);
     };
-  }, [isLocked]);
+  }, [isLocked, isIdlePaused]);
 
   // 1. On mount, fetch available months and select the most recent one automatically
   useEffect(() => {
@@ -244,6 +247,17 @@ export default function App() {
             >
               ➕
             </button>
+
+            {!snapshot.isFreezed && (
+              <button 
+                className="app-header-btn"
+                onClick={() => setIsIdlePaused(!isIdlePaused)}
+                title={isIdlePaused ? "Resume Auto-Lock" : "Pause Auto-Lock (Keep Unlocked)"}
+                style={isIdlePaused ? { color: 'var(--accent)', borderColor: 'var(--border)' } : {}}
+              >
+                {isIdlePaused ? '🔓' : '⏱️'}
+              </button>
+            )}
 
             {!snapshot.isFreezed && (
               <button 

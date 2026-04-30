@@ -122,7 +122,7 @@ input[type="number"].inc-slot-amount { -moz-appearance: textfield; appearance: t
 /* Row */
 .sb-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 5px 0;
   border-bottom: 1px solid var(--border-light);

@@ -18,20 +18,28 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
 
   // Income inline editor
   const [editingIncome, setEditingIncome] = useState(false);
-  const [incomeDraft, setIncomeDraft] = useState(EMPTY_SLOTS);
+  const [incomeDraft, setIncomeDraft] = useState<{label: string, amount: string, fixed?: boolean}[]>([]);
 
   const openIncomeEditor = () => {
-    // Pre-fill draft from current income (up to 5 slots)
-    const filled = income.slice(0, 5).map(e => ({ label: e.label, amount: String(e.amount) }));
+    const fixedLabels = ['Credit Repaid', 'Debt Taken'];
+    const normalIncome = income.filter(e => !fixedLabels.includes(e.label));
+    const cr = income.find(e => e.label === 'Credit Repaid') || { label: 'Credit Repaid', amount: 0 };
+    const dt = income.find(e => e.label === 'Debt Taken') || { label: 'Debt Taken', amount: 0 };
+
+    const filled = normalIncome.slice(0, 5).map(e => ({ label: e.label, amount: String(e.amount) }));
     const padded = [...filled, ...EMPTY_SLOTS].slice(0, 5);
+    
+    padded.push({ label: 'Credit Repaid', amount: String(cr.amount), fixed: true });
+    padded.push({ label: 'Debt Taken', amount: String(dt.amount), fixed: true });
+
     setIncomeDraft(padded);
     setEditingIncome(true);
   };
 
   const saveIncome = () => {
     const _filteredIncome: CashFlowEntry[] = incomeDraft
-      .filter(s => s.label.trim() && !isNaN(parseFloat(s.amount)))
-      .map(s => ({ label: s.label.trim(), amount: parseFloat(s.amount) }));
+      .filter(s => s.fixed || (s.label.trim() && !isNaN(parseFloat(s.amount))))
+      .map(s => ({ label: s.label.trim(), amount: parseFloat(s.amount) || 0 }));
       
     if (onSave) onSave({ ...snapshot, income: _filteredIncome });
     setEditingIncome(false);
@@ -118,12 +126,13 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
       {/* ── Health Check strip ───────────────────────────────────────────── */}
       <div className="hc-strip">
         <div className="hc-badges">
-          <HealthBadge label="Cashflow"   pass={health.isIncOk} actual={computedTotal}            expected={health.incomeDistributed} icon="💰" />
+          <HealthBadge label="Zero-Sum"   pass={health.isIncOk} actual={computedTotal}            expected={health.incomeDistributed} icon="⚖️" />
           <HealthBadge label="Investment" pass={health.isInvOk} actual={closing.investment}       expected={health.expInv} icon="📈" />
           <HealthBadge label="Saving"     pass={health.isSavOk} actual={closing.saving}           expected={health.expSav} icon="🏦" />
-          <HealthBadge label="Buffer"     pass={health.isChkOk} actual={closing.checking + closing.buffer}         expected={health.expChk} icon="🏧" />
+          <HealthBadge label="Buffer"     pass={health.isBufOk} actual={closing.buffer}           expected={health.expBuf} icon="🧰" />
+          <HealthBadge label="Checking"   pass={health.isChkOk} actual={closing.checking}         expected={health.expChk} icon="💳" />
           <HealthBadge label="Credit"     pass={health.isCgOk}  actual={closing.creditGiven}       expected={health.expCg} icon="🤝" />
-          <HealthBadge label="Debt"       pass={health.isDtOk}  actual={closing.debtTaken}         expected={health.expDt} icon="💳" />
+          <HealthBadge label="Debt"       pass={health.isDtOk}  actual={closing.debtTaken}         expected={health.expDt} icon="📉" />
         </div>
       </div>
 
@@ -164,18 +173,22 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
                 )}
               </div>
 
-              {/* Edit mode: show all 5 slots */}
+              {/* Edit mode: show normal and fixed slots */}
               {editingIncome ? (
                 <div className="inc-edit-slots">
                   {incomeDraft.map((slot, i) => (
                     <div key={i} className="inc-slot-row">
-                      <input
-                        className="inc-slot-label"
-                        type="text"
-                        placeholder={`Source ${i + 1}`}
-                        value={slot.label}
-                        onChange={e => updateSlot(i, 'label', e.target.value)}
-                      />
+                      {slot.fixed ? (
+                        <span className="inc-slot-fixed-label">{slot.label}</span>
+                      ) : (
+                        <input
+                          className="inc-slot-label"
+                          type="text"
+                          placeholder={`Source ${i + 1}`}
+                          value={slot.label}
+                          onChange={e => updateSlot(i, 'label', e.target.value)}
+                        />
+                      )}
                       <input
                         className="inc-slot-amount mono"
                         type="number"
@@ -233,10 +246,19 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
                 </div>
               ) : (
                 distributions.map((e, i) => {
-                  const netNote =
-                    e.label === 'Saving'   ? opening.saving   + e.amount :
-                    e.label === 'Buffer'   ? opening.buffer + e.amount :
-                    e.label === 'Checking' ? opening.checking + e.amount : null;
+                  const getOpening = (lbl: string) => {
+                    switch (lbl) {
+                      case 'Investment': return opening.investment;
+                      case 'Saving': return opening.saving;
+                      case 'Buffer': return opening.buffer;
+                      case 'Checking': return opening.checking;
+                      case 'Credit Given': return opening.creditGiven;
+                      case 'Debt Taken': return opening.debtTaken;
+                      default: return null;
+                    }
+                  };
+                  const op = getOpening(e.label);
+                  const netNote = op !== null ? op + e.amount : null;
                   return (
                     <div key={i} className="sb-flow-row">
                       <span className="sb-flow-label">{e.label}</span>
@@ -251,12 +273,13 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
 
               {/* Net Flow */}
               {(() => {
-                const outLabels = new Set(['Credit Given', 'Debt Repaid', 'For Expense']);
+                const inLabels = new Set(['Investment', 'Saving', 'Buffer', 'Checking']);
+                const outLabels = new Set(['Credit Given', 'Debt Repaid', 'Expense']);
                 const src = editingDist
                   ? distDraft.map(s => ({ label: s.label, amount: parseFloat(s.amount) || 0 }))
                   : distributions;
-                const inflow  = src.filter(e => !outLabels.has(e.label)).reduce((s, e) => s + e.amount, 0);
-                const outflow = src.filter(e =>  outLabels.has(e.label)).reduce((s, e) => s + e.amount, 0);
+                const inflow  = src.filter(e => inLabels.has(e.label)).reduce((s, e) => s + e.amount, 0);
+                const outflow = src.filter(e => outLabels.has(e.label)).reduce((s, e) => s + e.amount, 0);
                 const net = inflow - outflow;
                 return (
                   <div className="sb-total">
@@ -291,8 +314,8 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
               <div className="inc-edit-slots">
                 <ClosingInput label="Investment" value={closingDraft.investment} onChange={val => updateClosingDraft('investment', val)} expected={health.expInv} />
                 <ClosingInput label="Saving"     value={closingDraft.saving}     onChange={val => updateClosingDraft('saving', val)}     expected={health.expSav} />
-                <ClosingInput label="Buffer"     value={closingDraft.buffer}     onChange={val => updateClosingDraft('buffer', val)}     expected={health.expChk * 0.5} />
-                <ClosingInput label="Checking"   value={closingDraft.checking}   onChange={val => updateClosingDraft('checking', val)}   expected={health.expChk * 0.5} />
+                <ClosingInput label="Buffer"     value={closingDraft.buffer}     onChange={val => updateClosingDraft('buffer', val)}     expected={health.expBuf} />
+                <ClosingInput label="Checking"   value={closingDraft.checking}   onChange={val => updateClosingDraft('checking', val)}   expected={health.expChk} />
                 <ClosingInput label="Credit Given" value={closingDraft.creditGiven} onChange={val => updateClosingDraft('creditGiven', val)} expected={health.expCg} />
                 <ClosingInput label="Debt Taken"  value={closingDraft.debtTaken}  onChange={val => updateClosingDraft('debtTaken', val)}  expected={health.expDt} />
               </div>
@@ -300,8 +323,8 @@ export default function SummaryBar({ snapshot, onSave, readOnly }: Props) {
               <>
                 <SbRow label="Investment"  value={closing.investment} expected={health.expInv} accent />
                 <SbRow label="Saving"      value={closing.saving}     expected={health.expSav} />
-                <SbRow label="Buffer"      value={closing.buffer}     expected={health.expChk * 0.5} />
-                <SbRow label="Checking"    value={closing.checking}   expected={health.expChk * 0.5} />
+                <SbRow label="Buffer"      value={closing.buffer}     expected={health.expBuf} />
+                <SbRow label="Checking"    value={closing.checking}   expected={health.expChk} />
                 <SbRow label="Credit Given" value={closing.creditGiven} expected={health.expCg} dim />
                 <SbRow label="Debt Taken"  value={closing.debtTaken}  expected={health.expDt} red />
               </>
